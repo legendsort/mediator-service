@@ -1,0 +1,20 @@
+{
+    "allow" : [
+        "https://forex.tradingcharts.com/chart/?sQSyms=USDEUR%2CUSDAUD%2CUSDCAD%2CUSDHKD%2CUSDCNY%2CUSDCHF%2CUSDGBP%2CUSDRUB%2CUSDSEK%2CUSDSGD%2CUSDJPY%2CEURCNY&btnFinished=Finished%3A+Redisplay+Chart",
+        "https://forex.tradingcharts.com/chart/?sQuoteSet=EUR_majors",
+        "https://www.wsj.com/market-data/currencies/exchangerates",
+        "https://www.bloomberg.com/energy",
+        "https://www.boc.cn/sourcedb/whpj/enindex_1619.html",
+        "https://www.bloomberg.com/energy",
+        "http://cbr.ru/eng/currency_base/daily",
+        "https://forex.tradingcharts.com/chart/?sQuoteSet=Metals"
+    ],
+    "allow1" : [
+        "https://www.en.sge.com.cn/data_DelayedQuotes",
+        "https://forex.tradingcharts.com/chart/?sQSyms=USDEUR%2CUSDAUD%2CUSDCAD%2CUSDHKD%2CUSDCNY%2CUSDCHF%2CUSDGBP%2CUSDRUB%2CUSDSEK%2CUSDSGD%2CUSDJPY%2CEURCNY&btnFinished=Finished%3A+Redisplay+Chart"
+        
+    ],
+    "deny" : [
+        "https://www.crypto.com"
+    ]
+}

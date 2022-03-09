@@ -35,11 +35,11 @@ module.exports = {
    * cloudInfoController.update()
    */
   upload: async (req, res) => {
-    const uploaded_file = req.files.file;
-    const uploadPath =
-      req.app.get("public-dir") + "/ftp/upload/" + uploaded_file.name;
-    let ftpService = req.app.get("ftp-service");
     try {
+      const uploaded_file = req.files.file;
+      const uploadPath =
+        req.app.get("public-dir") + "/ftp/upload/" + uploaded_file.name;
+      let ftpService = req.app.get("ftp-service");
       await uploaded_file.mv(uploadPath);
       cloudInfos = await CloudinfoModel.findOne({ username: "mediator" });
       if (typeof cloudInfos !== undefined) {
@@ -54,7 +54,7 @@ module.exports = {
         force: true,
       });
     } catch (error) {
-      console.log(error);
+      return res.json({ status: false });
     }
     return res.json({ status: true });
   },
