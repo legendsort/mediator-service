@@ -27,6 +27,7 @@
     "moment": "^2.29.1",
     "mongoose": "^6.2.3",
     "morgan": "~1.9.1",
+    "node-cron": "^3.0.0",
     "puppeteer": "^13.4.0",
     "puppeteer-extra": "^3.2.3",
     "socket.io": "^4.4.1",

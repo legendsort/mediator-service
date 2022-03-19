@@ -27,6 +27,7 @@ class MyCrawler {
     } catch (e) {
       console.log(e);
     }
+
   };
 
   openBlankPage = async () => {
@@ -41,7 +42,7 @@ class MyCrawler {
     let url = script.url;
     
     try {
-      await page.goto(url, { waitUntil: "networkidle2" });
+      await page.goto(url,  {waitUntil: 'domcontentloaded'});
     } catch (e) {
       console.log(e);
     }
@@ -128,10 +129,6 @@ class MyCrawler {
 
     const res = this.insertFieldToTable(result, fields);
     let upTime = res && time ? res[0][time.field] : undefined
-    // console.log(upTime, typeof upTime, Date(upTime).toISOString)
-    // var dt = new Date();
-    //      dt.setHours( dt.getHours() + 2 );
-    //      document.write( dt );
     axios.post('http://127.0.0.1:3001/trade-info/create', {
       res,
       name,
@@ -146,6 +143,7 @@ class MyCrawler {
 
   success = async (page, script) => {
     console.log("Crawling Succed!")
+    await this.browser.close() 
   }
 
   execute = async (page, info) => {
@@ -163,23 +161,12 @@ class MyCrawler {
   start = async () => {
     await this.initBrowser();
     await this.launchBrowser();
-    
   };
-  
-  test = async () => {
-    const res = {"A": "B"}
-    
-    axios.post('http://127.0.0.1:3001/trade-info/create', {
-      res
-    }).then(
-      console.log("Success")
-    ).catch(e => console.log(e))
-  }
+
   crawl = async () => {
-    // return this.test()
     
     let todo = this.instruction.todo
-    // todo = [todo[8]]
+    
     await this.start();
     for(let item of todo) {
       let page = await this.openBlankPage();
@@ -187,9 +174,13 @@ class MyCrawler {
         this.execute(page, item);
       } catch(e) {
         console.log(e)
+        await this.browser.close()    
         break;
       }
     }
+    
+    
+
   };
 }
 
