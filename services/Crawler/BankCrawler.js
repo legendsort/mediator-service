@@ -179,7 +179,7 @@ class MyCrawler {
     // return this.test()
     
     let todo = this.instruction.todo
-    todo = [todo[3]]
+    // todo = [todo[8]]
     await this.start();
     for(let item of todo) {
       let page = await this.openBlankPage();

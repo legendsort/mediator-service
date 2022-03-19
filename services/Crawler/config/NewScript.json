@@ -4,7 +4,7 @@
       "name": "forex",
       "time": {
         "field": "Time",
-        "dif": -14
+        "dif": -10
       },
       "scripts": [
         {
@@ -29,7 +29,7 @@
       "name": "forex",
       "time": {
         "field": "Time",
-        "dif": -14
+        "dif": -10
       },
       "scripts": [
         {
@@ -114,7 +114,7 @@
       "name": "forex",
       "time": {
         "field": "Time",
-        "dif": -14
+        "dif": -10
       },
       "scripts": [
         {
