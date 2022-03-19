@@ -8,10 +8,14 @@ var jwt = require("express-jwt");
 const fileupload = require("express-fileupload");
 const bodyParser = require("body-parser");
 require("dotenv").config();
+
 var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
 var cloudRouter = require("./routes/cloud");
-const { FTPService } = require("./services");
+var tradeInfoRouter = require('./routes/tradeInfo.route')
+
+const { CrawlerService, FTPService } = require("./services");
+
 const mongoose = require("mongoose");
 var cors = require("cors");
 let ftpService = new FTPService();
@@ -73,5 +77,6 @@ app.set("public-dir", path.join(__dirname, "public"));
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
 app.use("/cloud", cloudRouter);
+app.use("/trade-info", tradeInfoRouter);
 
 module.exports = app;
