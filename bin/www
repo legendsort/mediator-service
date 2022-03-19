@@ -13,7 +13,7 @@ var port = normalizePort(process.env.PORT || "3000");
 
 var cronService = require('../cron');
 
-cronService.run_cron()
+cronService.runCron()
 
 app.set("port", port);
 

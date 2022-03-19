@@ -143,7 +143,6 @@ class MyCrawler {
 
   success = async (page, script) => {
     console.log("Crawling Succed!")
-    await this.browser.close() 
   }
 
   execute = async (page, info) => {
@@ -163,25 +162,25 @@ class MyCrawler {
     await this.launchBrowser();
   };
 
-  crawl = async () => {
-    
-    let todo = this.instruction.todo
-    
-    await this.start();
+  process = async (todo) => {
     for(let item of todo) {
       let page = await this.openBlankPage();
       try{
-        this.execute(page, item);
+        await this.execute(page, item);
       } catch(e) {
         console.log(e)
         await this.browser.close()    
         break;
       }
     }
-    
-    
-
+  }
+  crawl = async () => {
+    await this.start();
+    await this.process(this.instruction.todo)
+    await this.browser.close()
   };
+
+
 }
 
 module.exports = MyCrawler
