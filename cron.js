@@ -17,8 +17,6 @@ function runCron () {
 		}	
 	})
 	task.start()
-	
-	
 }
 
 module.exports = {

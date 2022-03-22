@@ -63,6 +63,47 @@ module.exports = {
       return res.status(201).json(data);
     });
   },
+  /**
+   * tradeInfoController.create()
+   * fetch data whose isSync is false
+   * request parm: []
+   * response param: [status, tradeInfo]
+   */
+  fetch: async (req, res) => {
+    tradeInfoModel.find({ isSync: false }, function (err, tradeInfo) {
+      if (err) {
+        return res.status(500).json({
+          message: "Error when fetching tradeInfo whose isSync is false.",
+          error: err,
+        });
+      }
+
+
+      return res.json(tradeInfo);
+    });
+  },
+
+  /**
+   * tradeInfoController.fetchSucced()
+   * success so that need to make sign
+   * request param: [id: array]
+   * response param: [status]
+   */
+  fetchSucced: async (req, res) => {
+    const id = req.body.id
+
+    tradeInfoModel.updateMany({_id: {$in: id}}, {isSync: true}, (err, tradeInfo) => {
+      if(err) {
+        return res.status(500).json({
+          message: "Error when signing tradeIfno to make isSync true",
+          error: err
+        })
+      }
+      return res.json(tradeInfo)
+    })
+    
+  }
+
 
 
  
