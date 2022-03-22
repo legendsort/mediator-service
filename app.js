@@ -75,9 +75,11 @@ app.use(
 app.use(express.static(path.join(__dirname, "public")));
 app.set("public-dir", path.join(__dirname, "public"));
 
-app.use("/", indexRouter);
-app.use("/users", usersRouter);
-app.use("/cloud", cloudRouter);
-app.use("/trade-info", tradeInfoRouter);
-app.use("/crawl-history", crawlHistoryRouter);
+const baseURL = process.env.BASE_URL
+console.log(baseURL + "/bank/crawl-history")
+app.use(baseURL + "/", indexRouter);
+app.use(baseURL + "/users", usersRouter);
+app.use(baseURL + "/cloud", cloudRouter);
+app.use(baseURL + "/bank/trade-info", tradeInfoRouter);
+app.use(baseURL + "/bank/crawl-history", crawlHistoryRouter);
 module.exports = app;

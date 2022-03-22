@@ -4,6 +4,8 @@ const axios = require("axios");
 const FormData = require("form-data");
 const sleep = require("await-sleep");
 
+const baseURL = process.env.BASE_URL
+
 class MyCrawler {
   constructor(browserConfig, instruction) {
     this.configs = browserConfig;  
@@ -119,7 +121,7 @@ class MyCrawler {
   }
   
   saveData = (res, name, upTime) => {
-    axios.post('http://127.0.0.1:3001/trade-info/create', {
+    axios.post(`${baseURL}/bank/trade-info/create`, {
       res,
       name,
       upTime
@@ -138,7 +140,7 @@ class MyCrawler {
       isSync: false
     }
 
-    axios.post('http://127.0.0.1:3001/crawl-history/create', {
+    axios.post(`${baseURL}/bank/crawl-history/create`, {
       history
     }).then(
       console.log("Create history Success")
