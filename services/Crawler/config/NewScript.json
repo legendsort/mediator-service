@@ -203,6 +203,19 @@
           "text": "Success!!!"
         }
       ]
+    },
+    {
+      "name": "sge",
+      "scripts": [
+        {
+          "type": "visit",
+          "url": "https://www.en.sge.com.cn/data_DelayedQuotes"
+        },
+        {
+          "type": "getTableData"
+
+        }
+      ]
     }
     
   ]

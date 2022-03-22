@@ -2,9 +2,9 @@
 
 var express = require("express");
 var router = express.Router();
-var crawlHitoryController = require("../controllers/crawlHistory.controller");
+var crawlHistoryController = require("../controllers/crawlHistory.controller");
 
-router.post("/create", crawlHitoryController.create);
-router.get ("/fetch", crawlHitoryController.fetch);
-router.post("/fetch-succed", crawlHitoryController.fetchSucced);
+router.post("/create", crawlHistoryController.create);
+router.get ("/fetch", crawlHistoryController.fetch);
+router.post("/fetch-succed", crawlHistoryController.fetchSucced);
 module.exports = router;

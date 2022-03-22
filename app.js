@@ -13,6 +13,7 @@ var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
 var cloudRouter = require("./routes/cloud");
 var tradeInfoRouter = require('./routes/tradeInfo.route')
+var crawlHistoryRouter = require('./routes/crawlHistory.route')
 
 const { CrawlerService, FTPService } = require("./services");
 
@@ -78,5 +79,5 @@ app.use("/", indexRouter);
 app.use("/users", usersRouter);
 app.use("/cloud", cloudRouter);
 app.use("/trade-info", tradeInfoRouter);
-
+app.use("/crawl-history", crawlHistoryRouter);
 module.exports = app;

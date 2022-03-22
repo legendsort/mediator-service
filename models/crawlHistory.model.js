@@ -6,7 +6,7 @@ var crawlHistorySchema = new Schema({
 	status: String,
 	message: String,
 	time: String,
-	'isSync': Boolean
+	isSync: Boolean
 });
 
 module.exports = mongoose.model('crawlHistory', crawlHistorySchema);

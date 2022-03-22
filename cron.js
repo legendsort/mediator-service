@@ -8,6 +8,7 @@ const browserConfig = require("./services/Crawler/config/browser.json");
 const instruction = require("./services/Crawler/config/NewScript.json");
 
 function runCron () {
+
 	const task = cron.schedule('*/20 * * * *', () => {
 		try{
 			const bcs = new BankCrawlerService(browserConfig.browser, instruction);

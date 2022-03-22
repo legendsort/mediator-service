@@ -17,6 +17,7 @@ class MyCrawler {
         await this.browser.close();
       } catch (e) {
         console.log(e);
+        return false
       }
     }
   };
@@ -26,6 +27,7 @@ class MyCrawler {
       this.browser = await puppeteer.launch(this.configs);
     } catch (e) {
       console.log(e);
+      return false
     }
 
   };
@@ -35,16 +37,17 @@ class MyCrawler {
       return await this.browser.newPage();
     } catch (e) {
       console.log(e);
+      return false
     }
   };
 
   visit = async (page, script) => {
     let url = script.url;
-    
     try {
       await page.goto(url,  {waitUntil: 'domcontentloaded'});
     } catch (e) {
       console.log(e);
+      return false
     }
   };
 
@@ -54,11 +57,13 @@ class MyCrawler {
       await page.focus(selector);
     } catch (e) {
       console.log(e);
+      return false
     }
     try {
       await page.keyboard.type(value, { delay: 30 });
     } catch (e) {
       console.log(e);
+      return false
     }
   };
 
@@ -68,6 +73,7 @@ class MyCrawler {
       await page.click(selector);
     } catch (e) {
       console.log(e);
+      return false
     }
   };
 
@@ -76,6 +82,7 @@ class MyCrawler {
       await page.waitForNavigation();
     } catch (e) {
       console.log(e);
+      return false
     }
   };
 
@@ -85,6 +92,7 @@ class MyCrawler {
       await page.waitForSelector(selector);
     } catch (e) {
       console.log("e");
+      return false
     }
   };
 
@@ -93,6 +101,7 @@ class MyCrawler {
       await page.reload();
     } catch (e) {
       console.log(e);
+      return false
     }
   };
 
@@ -109,6 +118,33 @@ class MyCrawler {
     return res
   }
   
+  saveData = (res, name, upTime) => {
+    axios.post('http://127.0.0.1:3001/trade-info/create', {
+      res,
+      name,
+      upTime
+    }).then(
+      console.log("Save Success")
+    ).catch(e => console.log(e))
+  }
+
+  saveHistory = async (type, status, message) => {
+    
+    const history = {
+      type: type,
+      status: status,
+      message: message,
+      time: new Date().toISOString(),
+      isSync: false
+    }
+
+    axios.post('http://127.0.0.1:3001/crawl-history/create', {
+      history
+    }).then(
+      console.log("Create history Success")
+    ).catch(e => console.log(e))
+  }
+
   getTableData = async (page, script, name, time) => {
     let [rowSelector, headerSelector] = [script.rowSelector, script.headerSelector]
     
@@ -117,27 +153,28 @@ class MyCrawler {
     else fields = script.fields
      
     let colSelector = 'td'
-    if('colSelector' in script) {
-      colSelector = script.colSelector
+    if('colSelector' in script) colSelector = script.colSelector
+    try{
+      const result = await page.$$eval(rowSelector, (rows, colSelector) => {
+        return Array.from(rows, row => {
+          const columns = row.querySelectorAll(colSelector);
+          return Array.from(columns, column => column.innerText);
+        });
+      }, colSelector);
+
+      if(result.length === 0) return false
+
+      const res = this.insertFieldToTable(result, fields);
+      let upTime = res && time ? res[0][time.field] : undefined
+
+      this.saveData(res, name, upTime)
+      this.saveHistory(name, 'success', `${name} download success`)
+      return res
+    }catch(e) {
+      console.log(e)
+      return false
     }
-    const result = await page.$$eval(rowSelector, (rows, colSelector) => {
-      return Array.from(rows, row => {
-        const columns = row.querySelectorAll(colSelector);
-        return Array.from(columns, column => column.innerText);
-      });
-    }, colSelector);
-
-    const res = this.insertFieldToTable(result, fields);
-    let upTime = res && time ? res[0][time.field] : undefined
-    axios.post('http://127.0.0.1:3001/trade-info/create', {
-      res,
-      name,
-      upTime
-    }).then(
-      console.log("Save Success")
-    ).catch(e => console.log(e))
-
-    return res
+    
 
   }
 
@@ -146,15 +183,24 @@ class MyCrawler {
   }
 
   execute = async (page, info) => {
-    
+    let result;
     for (let script of info.scripts) {
       let fn = script.type;
       if(fn in this) {
-        await this[fn](page, script, info.name, info.time);
+        try{
+          result = await this[fn](page, script, info.name, info.time);  
+          if(result === false) {
+            break;
+          }
+        } catch(e) {
+           console.log(e)
+           break
+        }
       } else {
         console.log("unknow script -->", script)
       }
     }
+    if(result === false) return false
   };
 
   start = async () => {
@@ -162,25 +208,38 @@ class MyCrawler {
     await this.launchBrowser();
   };
 
+  
+
+  processEach = async (item) => {
+    await this.saveHistory(item.name, "request", `${item.name} requesting data...`)
+    let page = await this.openBlankPage();
+    return await this.execute(page, item);
+
+  }
+
   process = async (todo) => {
     for(let item of todo) {
-      let page = await this.openBlankPage();
       try{
-        await this.execute(page, item);
+        const res = await this.processEach(item)  
+        if(res === false) {
+          console.log(`${item.name} crawl failed`)
+          this.saveHistory(item.name, 'failed', `${item.name} download failed`)
+        }
       } catch(e) {
         console.log(e)
-        await this.browser.close()    
-        break;
       }
     }
   }
+
+  end = async () => {
+    await this.browser.close()
+  }
+
   crawl = async () => {
     await this.start();
     await this.process(this.instruction.todo)
-    await this.browser.close()
+    await this.end();
   };
-
-
 }
 
 module.exports = MyCrawler
