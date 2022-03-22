@@ -21,12 +21,17 @@ module.exports = {
     newHistory.save(function (err, newHistory) {
       if (err) {
         return res.status(500).json({
-          message: "Error when saving crawl history",
-          error: err,
+          response_code: false,
+          message: "Error when saving crawl history.",
+          data: err
         });
       }
 
-      return res.status(201).json(newHistory);
+      return res.status(201).json({
+        resposne_code: true,
+        message: "Success when saving crawl history.",
+        data: newHistory
+      });
     });
   },
 
@@ -40,11 +45,16 @@ module.exports = {
     crawlHistoryModel.find({ isSync: false }, function (err, crawlHistory) {
       if (err) {
         return res.status(500).json({
+          resposne_code: false,
           message: "Error when fetching crawl history whose isSync is false.",
           error: err,
         });
       }
-      return res.json(crawlHistory);
+      return res.json({
+        resposne_code: true,
+        message: "Success when fetching crawl history whose isSync is false.",
+        data: crawlHistory
+      });
     });
   },
 
@@ -56,20 +66,20 @@ module.exports = {
    */
   fetchSucced: async (req, res) => {
     const id = req.body.id
-
+    
     crawlHistoryModel.updateMany({_id: {$in: id}}, {isSync: true}, (err, crawlHistory) => {
       if(err) {
         return res.status(500).json({
-          message: "Error when signing crawl history to make isSync true",
+          resposne_code: false,
+          message: "Error when signing crawl history to make isSync true.",
           error: err
         })
       }
-      return res.json(crawlHistory)
+      return res.json({
+        resposne_code: true,
+        message: "Success when signing crawl history to make isSync true.",
+        data: crawlHistory
+      })
     })
-    
   }
-
-
-
- 
 };

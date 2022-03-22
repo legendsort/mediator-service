@@ -36,7 +36,6 @@ module.exports = {
       upTime.set({hour: hour, minute: minute, second: 0})
       upTime.subtract(10, 'hour')
       time = upTime.format('YYYY-MM-DD HH:mm:ss')
-
     }
 
     if(type === "boc") {
@@ -49,19 +48,25 @@ module.exports = {
       type: type,
       data: data,
       upTime: time,
+      crawlTime: new Date(),
       isSync: false
     })
 
     newInfo.save(function (err, newInfo) {
       if (err) {
         return res.status(500).json({
+          response_code: false,
           message: "Error when saving tradeInfo",
-          error: err,
+          data: err
         });
       }
 
-      return res.status(201).json(data);
-    });
+      return res.status(201).json({
+        response_code: true,
+        message: "creating tradeInfo succed",
+        data: data,
+      });
+    })
   },
   /**
    * tradeInfoController.create()
@@ -73,13 +78,16 @@ module.exports = {
     tradeInfoModel.find({ isSync: false }, function (err, tradeInfo) {
       if (err) {
         return res.status(500).json({
+          response_code: false,
           message: "Error when fetching tradeInfo whose isSync is false.",
-          error: err,
+          data: err
         });
       }
-
-
-      return res.json(tradeInfo);
+      return res.json({
+        response_code: true,
+        message: "Success when fetching tradeinfo whose isSync is false.",
+        data: tradeInfo
+      });
     });
   },
 
@@ -91,15 +99,19 @@ module.exports = {
    */
   fetchSucced: async (req, res) => {
     const id = req.body.id
-
     tradeInfoModel.updateMany({_id: {$in: id}}, {isSync: true}, (err, tradeInfo) => {
       if(err) {
         return res.status(500).json({
-          message: "Error when signing tradeIfno to make isSync true",
-          error: err
+          response_code: false,
+          message: "Error when signing tradeIfno to make isSync true.",
+          data: err
         })
       }
-      return res.json(tradeInfo)
+      return res.json({
+        response_code: true,
+        message: "Success when signing tradeInfo to make isSync true.",
+        data: tradeInfo
+      });
     })
     
   }

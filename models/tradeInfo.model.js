@@ -5,6 +5,7 @@ var tradeInfoSchema = new Schema({
 	'type' : String,
 	'data' : Object,
 	'upTime': String,
+	'crawlTime': Date,
 	'isSync': Boolean
 });
 
