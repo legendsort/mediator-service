@@ -5,6 +5,7 @@ const FormData = require("form-data");
 const sleep = require("await-sleep");
 
 const baseURL = process.env.BASE_URL
+const serverURL = process.env.WIPO_SERVER
 
 class MyCrawler {
   constructor(browserConfig, instruction) {
@@ -121,7 +122,7 @@ class MyCrawler {
   }
   
   saveData = (res, name, upTime) => {
-    axios.post(`${baseURL}/bank/trade-info/create`, {
+    axios.post(`${serverURL}${baseURL}/bank/trade-info/create`, {
       res,
       name,
       upTime
@@ -139,12 +140,14 @@ class MyCrawler {
       time: new Date().toISOString(),
       isSync: false
     }
-
-    axios.post(`${baseURL}/bank/crawl-history/create`, {
+    axios.post(`${serverURL}${baseURL}/bank/crawl-history/create`, {
       history
     }).then(
       console.log("Create history Success")
-    ).catch(e => console.log(e))
+    ).catch(e => {
+      console.log("------>");
+      console.log(e)
+    })
   }
 
   getTableData = async (page, script, name, time) => {
@@ -168,7 +171,6 @@ class MyCrawler {
 
       const res = this.insertFieldToTable(result, fields);
       let upTime = res && time ? res[0][time.field] : undefined
-
       this.saveData(res, name, upTime)
       this.saveHistory(name, 'success', `${name} download success`)
       return res

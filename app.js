@@ -76,7 +76,6 @@ app.use(express.static(path.join(__dirname, "public")));
 app.set("public-dir", path.join(__dirname, "public"));
 
 const baseURL = process.env.BASE_URL
-console.log(baseURL + "/bank/crawl-history")
 app.use(baseURL + "/", indexRouter);
 app.use(baseURL + "/users", usersRouter);
 app.use(baseURL + "/cloud", cloudRouter);
