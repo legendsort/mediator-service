@@ -6,5 +6,5 @@ var crawlHistoryController = require("../controllers/crawlHistory.controller");
 
 router.post("/create", crawlHistoryController.create);
 router.get ("/fetch", crawlHistoryController.fetch);
-router.post("/fetch-succed", crawlHistoryController.fetchSucced);
+router.post("/fetch-succeed", crawlHistoryController.fetchsucceed);
 module.exports = router;

@@ -63,7 +63,7 @@ module.exports = {
 
       return res.status(201).json({
         response_code: true,
-        message: "creating tradeInfo succed",
+        message: "creating tradeInfo succeed",
         data: data,
       });
     })
@@ -92,12 +92,12 @@ module.exports = {
   },
 
   /**
-   * tradeInfoController.fetchSucced()
+   * tradeInfoController.fetchsucceed()
    * success so that need to make sign
    * request param: [id: array]
    * response param: [status]
    */
-  fetchSucced: async (req, res) => {
+  fetchsucceed: async (req, res) => {
     const id = req.body.id
     tradeInfoModel.updateMany({_id: {$in: id}}, {isSync: true}, (err, tradeInfo) => {
       if(err) {

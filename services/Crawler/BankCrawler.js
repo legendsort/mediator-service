@@ -181,7 +181,7 @@ class MyCrawler {
   }
 
   success = async (page, script) => {
-    console.log("Crawling Succed!")
+    console.log("Crawling succeed!")
   }
 
   execute = async (page, info) => {

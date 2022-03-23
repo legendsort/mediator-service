@@ -59,12 +59,12 @@ module.exports = {
   },
 
   /**
-   * crawlHistoryController.fetchSucced()
+   * crawlHistoryController.fetchsucceed()
    * success so that need to make sign
    * request param: [id: array]
    * response param: [status]
    */
-  fetchSucced: async (req, res) => {
+  fetchsucceed: async (req, res) => {
     const id = req.body.id
     
     crawlHistoryModel.updateMany({_id: {$in: id}}, {isSync: true}, (err, crawlHistory) => {

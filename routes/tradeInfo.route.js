@@ -6,5 +6,5 @@ var tradeInfoController = require("../controllers/tradeInfo.controller");
 
 router.post("/create", tradeInfoController.create);
 router.get ("/fetch", tradeInfoController.fetch);
-router.post("/fetch-succed", tradeInfoController.fetchSucced);
+router.post("/fetch-succeed", tradeInfoController.fetchsucceed);
 module.exports = router;
