@@ -22,6 +22,7 @@ module.exports = {
   create: async (req, res) => {
     
     let [data, type, time] = [req.body.res, req.body.name, req.body.upTime]
+    moment().toISOString(true)
     
     if(time === undefined) time = new Date().toISOString()
 
@@ -35,13 +36,13 @@ module.exports = {
       if(upTime.hour() > hour) upTime = upTime.add(1, 'day')
       upTime.set({hour: hour, minute: minute, second: 0})
       upTime.subtract(10, 'hour')
-      time = upTime.format('YYYY-MM-DD HH:mm:ss')
+      time = upTime.format()
     }
 
     if(type === "boc") {
       let upTime = new moment(time, "YYYY-MM-DD HH:mm:ss")
       upTime = upTime.add(1, 'hour')
-      time = upTime.format('YYYY-MM-DD HH:mm:ss')
+      time = upTime.format()
     }
 
     const newInfo = new tradeInfoModel ({
@@ -64,7 +65,7 @@ module.exports = {
       return res.status(201).json({
         response_code: true,
         message: "creating tradeInfo succeed",
-        data: data,
+        data: newInfo,
       });
     })
   },
@@ -75,6 +76,7 @@ module.exports = {
    * response param: [status, tradeInfo]
    */
   fetch: async (req, res) => {
+
     tradeInfoModel.find({ isSync: false }, function (err, tradeInfo) {
       if (err) {
         return res.status(500).json({
@@ -99,7 +101,7 @@ module.exports = {
    */
   fetchsucceed: async (req, res) => {
     const id = req.body.id
-    tradeInfoModel.updateMany({_id: {$in: id}}, {isSync: true}, (err, tradeInfo) => {
+    tradeInfoModel.updateMany({_id: {$in: id}}, {isSync: false}, (err, tradeInfo) => {
       if(err) {
         return res.status(500).json({
           response_code: false,
