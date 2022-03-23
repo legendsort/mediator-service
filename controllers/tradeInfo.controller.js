@@ -1,6 +1,4 @@
 /** @format */
-var moment = require("moment")
-
 var tradeInfoModel = require("../models/tradeInfo.model");
 
 /**
@@ -21,35 +19,12 @@ module.exports = {
    */
   create: async (req, res) => {
     
-    let [data, type, time] = [req.body.res, req.body.name, req.body.upTime]
-    moment().toISOString(true)
+    let [data, type, time] = [req.body.res, req.body.name, req.body.time]
     
-    if(time === undefined) time = new Date().toISOString()
-
-    if(type === "cbr" || type === "energy") {
-      time = new Date().toISOString()
-    }
-
-    if(type === "forex") {
-      let upTime = new moment()
-      let [hour, minute] = getHourMinute(time)
-      if(upTime.hour() > hour) upTime = upTime.add(1, 'day')
-      upTime.set({hour: hour, minute: minute, second: 0})
-      upTime.subtract(10, 'hour')
-      time = upTime.format()
-    }
-
-    if(type === "boc") {
-      let upTime = new moment(time, "YYYY-MM-DD HH:mm:ss")
-      upTime = upTime.add(1, 'hour')
-      time = upTime.format()
-    }
-
     const newInfo = new tradeInfoModel ({
       type: type,
       data: data,
       upTime: time,
-      crawlTime: new Date(),
       isSync: false
     })
 
@@ -101,6 +76,13 @@ module.exports = {
    */
   fetchsucceed: async (req, res) => {
     const id = req.body.id
+    if(id === undefined) {
+      return res.status(500).json({
+        response_code: false,
+        message: "No id array. Please send id array to remove",
+        data: "No id array"
+      })
+    }
     tradeInfoModel.updateMany({_id: {$in: id}}, {isSync: false}, (err, tradeInfo) => {
       if(err) {
         return res.status(500).json({

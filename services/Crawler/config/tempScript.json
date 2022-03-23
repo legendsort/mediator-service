@@ -2,7 +2,6 @@
   "todo": [
     {
       "name": "forex",
-      "time": "Time",
       "scripts": [
         {
           "type": "visit",
@@ -24,7 +23,6 @@
     },
     {
       "name": "forex",
-      "time": "Time:",
       "scripts": [
         {
           "type": "visit",
@@ -32,10 +30,6 @@
         },
         {
           "type": "reload"
-        },
-        {
-          "type": "checkWait",
-          "selector": "#quotetable > table"
         },
         {
           "type": "getTableData",
@@ -105,7 +99,7 @@
       ]
     },
     {
-      "name": "forex",
+      "name": "lmm",
       "scripts": [
         {
           "type": "visit",
@@ -127,6 +121,10 @@
     },
     {
       "name": "energy",
+      "time": {
+        "field": "TIME (EDT)",
+        "dif": -13
+      },
       "scripts": [
         {
           "type": "visit",
@@ -146,6 +144,10 @@
     },
     {
       "name": "energy",
+      "time": {
+        "field": "TIME (EDT)",
+        "dif": -13
+      },
       "scripts": [
         {
           "type": "visit",
@@ -165,6 +167,10 @@
     },
     {
       "name": "energy",
+      "time": {
+        "field": "TIME (EDT)",
+        "dif": -13
+      },
       "scripts": [
         {
           "type": "visit",
@@ -179,6 +185,19 @@
         {
           "type": "success",
           "text": "Success!!!"
+        }
+      ]
+    },
+    {
+      "name": "sge",
+      "scripts": [
+        {
+          "type": "visit",
+          "url": "https://www.en.sge.com.cn/data_DelayedQuotes"
+        },
+        {
+          "type": "getTableData"
+
         }
       ]
     }

@@ -4,8 +4,7 @@ var Schema   = mongoose.Schema;
 var tradeInfoSchema = new Schema({
 	'type' : String,
 	'data' : Object,
-	'upTime': String,
-	'crawlTime': Date,
+	'upTime': Date,
 	'isSync': Boolean
 });
 

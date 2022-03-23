@@ -2,10 +2,6 @@
   "todo": [
     {
       "name": "forex",
-      "time": {
-        "field": "Time",
-        "dif": -10
-      },
       "scripts": [
         {
           "type": "visit",
@@ -19,19 +15,6 @@
           "rowSelector": "#quotetable > table tr",
           "headerSelector": "#quotetable > table tr th"
         },
-        {
-          "type": "success",
-          "text": "Success!!!"
-        }
-      ]
-    },
-    {
-      "name": "forex",
-      "time": {
-        "field": "Time",
-        "dif": -10
-      },
-      "scripts": [
         {
           "type": "visit",
           "url": "https://forex.tradingcharts.com/chart/?sQuoteSet=EUR_majors"
@@ -70,10 +53,6 @@
     },
     {
       "name": "boc",
-      "time": {
-        "field": "Pub Time",
-        "dif": 1
-      },
       "scripts": [
         {
           "type": "visit",
@@ -111,11 +90,7 @@
       ]
     },
     {
-      "name": "forex",
-      "time": {
-        "field": "Time",
-        "dif": -10
-      },
+      "name": "lmm",
       "scripts": [
         {
           "type": "visit",
@@ -137,10 +112,6 @@
     },
     {
       "name": "energy",
-      "time": {
-        "field": "TIME (EDT)",
-        "dif": -13
-      },
       "scripts": [
         {
           "type": "visit",
@@ -153,44 +124,10 @@
           "headerSelector": "#content > div > div > div.section-front__main-content > div.data-tables.first > div > table > thead > tr th"
         },
         {
-          "type": "success",
-          "text": "Success!!!"
-        }
-      ]
-    },
-    {
-      "name": "energy",
-      "time": {
-        "field": "TIME (EDT)",
-        "dif": -13
-      },
-      "scripts": [
-        {
-          "type": "visit",
-          "url": "https://www.bloomberg.com/energy"
-        },
-        {
           "type": "getTableData",
           "rowSelector": "#content > div > div > div.section-front__main-content > div:nth-child(6) > div > table > tbody > tr",
           "colSelector": "td,th",
           "headerSelector": "#content > div > div > div.section-front__main-content > div:nth-child(6) > div > table > thead > tr th"
-        },
-        {
-          "type": "success",
-          "text": "Success!!!"
-        }
-      ]
-    },
-    {
-      "name": "energy",
-      "time": {
-        "field": "TIME (EDT)",
-        "dif": -13
-      },
-      "scripts": [
-        {
-          "type": "visit",
-          "url": "https://www.bloomberg.com/energy"
         },
         {
           "type": "getTableData",

@@ -37,12 +37,12 @@ module.exports = {
 
   /**
    * crawlHistoryController.create()
-   * fetch data whose isSync is false
+   * fetch data
    * request parm: []
    * response param: [status, crawlHistory]
    */
   fetch: async (req, res) => {
-    crawlHistoryModel.find({ isSync: false }, function (err, crawlHistory) {
+    crawlHistoryModel.find({}, function (err, crawlHistory) {
       if (err) {
         return res.status(500).json({
           resposne_code: false,
@@ -58,28 +58,4 @@ module.exports = {
     });
   },
 
-  /**
-   * crawlHistoryController.fetchsucceed()
-   * success so that need to make sign
-   * request param: [id: array]
-   * response param: [status]
-   */
-  fetchsucceed: async (req, res) => {
-    const id = req.body.id
-    
-    crawlHistoryModel.updateMany({_id: {$in: id}}, {isSync: true}, (err, crawlHistory) => {
-      if(err) {
-        return res.status(500).json({
-          resposne_code: false,
-          message: "Error when signing crawl history to make isSync true.",
-          error: err
-        })
-      }
-      return res.json({
-        resposne_code: true,
-        message: "Success when signing crawl history to make isSync true.",
-        data: crawlHistory
-      })
-    })
-  }
 };

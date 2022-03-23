@@ -12,6 +12,7 @@ class MyCrawler {
     this.configs = browserConfig;  
     this.instruction = instruction;
     this.browser
+    this.results = {}
   }
 
   initBrowser = async () => {
@@ -121,31 +122,28 @@ class MyCrawler {
     return res
   }
   
-  saveData = (res, name, upTime) => {
+  saveData = (name, res, time) => {
     axios.post(`${serverURL}${baseURL}/bank/trade-info/create`, {
       res,
       name,
-      upTime
+      time
     }).then(
       console.log("Save Success")
     ).catch(e => console.log(e))
   }
 
   saveHistory = async (type, status, message) => {
-    
     const history = {
       type: type,
       status: status,
       message: message,
       time: new Date().toISOString(),
-      isSync: false
     }
     axios.post(`${serverURL}${baseURL}/bank/crawl-history/create`, {
       history
     }).then(
       console.log("Create history Success")
     ).catch(e => {
-      console.log("------>");
       console.log(e)
     })
   }
@@ -170,19 +168,18 @@ class MyCrawler {
       if(result.length === 0) return false
 
       const res = this.insertFieldToTable(result, fields);
-      let upTime = res && time ? res[0][time.field] : undefined
-      this.saveData(res, name, upTime)
-      this.saveHistory(name, 'success', `${name} download success`)
-      return res
+      this.results[name].data = this.results[name].data.concat(res)
+
     }catch(e) {
       console.log(e)
       return false
     }
-    
-
   }
 
-  success = async (page, script) => {
+
+  success = async (page, script, name) => {
+    this.results[name].status = "success"
+    await this.saveHistory(name, "success", `${name} crawl data successfully...`)
     console.log("Crawling succeed!")
   }
 
@@ -192,7 +189,7 @@ class MyCrawler {
       let fn = script.type;
       if(fn in this) {
         try{
-          result = await this[fn](page, script, info.name, info.time);  
+          result = await this[fn](page, script, info.name);  
           if(result === false) {
             break;
           }
@@ -202,6 +199,7 @@ class MyCrawler {
         }
       } else {
         console.log("unknow script -->", script)
+        break
       }
     }
     if(result === false) return false
@@ -212,10 +210,12 @@ class MyCrawler {
     await this.launchBrowser();
   };
 
-  
-
   processEach = async (item) => {
     await this.saveHistory(item.name, "request", `${item.name} requesting data...`)
+    this.results[item.name] = {
+      status: "",
+      data: [],
+    }
     let page = await this.openBlankPage();
     return await this.execute(page, item);
 
@@ -236,6 +236,11 @@ class MyCrawler {
   }
 
   end = async () => {
+    const time = new Date().toISOString()
+    for(let name in this.results) {
+      let res = this.results[name]
+      if(res.status === "success") this.saveData(name, res.data, time)
+    }
     await this.browser.close()
   }
 
