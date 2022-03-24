@@ -1,4 +1,6 @@
 var mongoose = require('mongoose');
+var mongoosePaginate = require('mongoose-paginate-v2');
+
 var Schema   = mongoose.Schema;
 
 var tradeInfoSchema = new Schema({
@@ -7,5 +9,7 @@ var tradeInfoSchema = new Schema({
 	'upTime': Date,
 	'isSync': Boolean
 });
+
+tradeInfoSchema.plugin(mongoosePaginate);
 
 module.exports = mongoose.model('tradeInfo', tradeInfoSchema);

@@ -1,6 +1,4 @@
 /** @format */
-var moment = require("moment")
-
 var crawlHistoryModel = require("../models/crawlHistory.model");
 
 /**
@@ -9,53 +7,75 @@ var crawlHistoryModel = require("../models/crawlHistory.model");
  * @description :: Server-side logic for managing crawl history.
  */
 
+const sendResponse = (res, status, response_code, message, data, expire = false) => {
+  if(expire){
+   return res.status(status).json({
+        response_code: response_code,
+        message: message,
+        ...data       
+    })
+  }else{
+     return res.status(status).json({
+      response_code: response_code,
+      message: message,
+      data:data
+    })
+  }
+}
 
 module.exports = {
   /**
    * crawlHistoryController.create()
    */
   create: async (req, res) => {
-    const history = req.body.history
+    const history = req.body.history;
     const newHistory = new crawlHistoryModel (history)
 
     newHistory.save(function (err, newHistory) {
-      if (err) {
-        return res.status(500).json({
-          response_code: false,
-          message: "Error when saving crawl history.",
-          data: err
-        });
-      }
-
-      return res.status(201).json({
-        resposne_code: true,
-        message: "Success when saving crawl history.",
-        data: newHistory
-      });
+      if (err) return sendResponse(res, 500, false, "Error when saving crawl history.", err);
+      return sendResponse(res, 200, true, "Success when saving crawl history.", newHistory);
     });
   },
 
   /**
-   * crawlHistoryController.create()
-   * fetch data
+   * crawlHistoryController.fetchAll()
+   * fetch all data
    * request parm: []
    * response param: [status, crawlHistory]
    */
-  fetch: async (req, res) => {
+  fetchAll: async (req, res) => {
     crawlHistoryModel.find({}, function (err, crawlHistory) {
-      if (err) {
-        return res.status(500).json({
-          resposne_code: false,
-          message: "Error when fetching crawl history whose isSync is false.",
-          error: err,
-        });
-      }
-      return res.json({
-        resposne_code: true,
-        message: "Success when fetching crawl history whose isSync is false.",
-        data: crawlHistory
-      });
+      if (err) return sendResponse(res, 500, false, "Error when fetching all crawl history", err);
+      return sendResponse(res, 200, true, "Success when fetching all crawl history", crawlHistory);
     });
+  },
+
+  /**
+   * crawlHistoryController.fetch()
+   * fetch data
+   * request parm: [pageSize, pageNumber]
+   * response param: [data, pageNumber, pageSize, totalPages]
+   */
+  fetch: async (req, res) => {
+    let [pageSize, pageNumber] = [req.query.pageSize, req.query.pageNumber];
+
+    if(pageSize === undefined) pageSize = 10;
+    if(pageNumber === undefined) pageNumber = 0;
+    const pageOptions = {
+      page: pageNumber,
+      limit: pageSize,
+    }
+    crawlHistoryModel.paginate({}, pageOptions, (err, result) => {
+      if(err) return sendResponse(res, 500, false, "Error when paginating crawl history", err);
+      const data = {
+        data: result.docs,
+        pageNumber: pageNumber,
+        pageSize: pageSize,
+        totalPages: result.totalPages
+      }
+      return sendResponse(res, 200, true, "Success paginating", data)
+    })
+
   },
 
 };
