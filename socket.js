@@ -6,10 +6,9 @@ const socketioJwt = require("socketio-jwt");
 const socket = {
   io: io,
 };
-
 io.use(
   socketioJwt.authorize({
-    secret: "your secret or public key",
+    secret: process.env.SECRET_KEY,
     handshake: true,
   }),
 );

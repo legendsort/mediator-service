@@ -12,17 +12,11 @@ var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
 var cloudRouter = require("./routes/cloud");
 const { FTPService } = require("./services");
+const { BrowserService } = require("./services");
 const mongoose = require("mongoose");
 var cors = require("cors");
 let ftpService = new FTPService();
-const jwt_parser = require("jsonwebtoken");
-
-// connect mongodb
-// console.log(
-//   jwt_parser.sign({ foo: "bar" }, "your secret or public key", {
-//     expiresIn: 60 * 60 * 60,
-//   }),
-// );
+let browserService = new BrowserService();
 
 try {
   mongoose.connect(process.env.MONGODB_URL || "mongodb://localhost/Mediator");
@@ -33,6 +27,7 @@ try {
 var app = express();
 // register service to express application
 app.set("ftp-service", ftpService);
+app.set("browser-service", browserService);
 
 //
 app.use(logger("dev"));
