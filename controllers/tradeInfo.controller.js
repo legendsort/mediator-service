@@ -6,12 +6,8 @@ var tradeInfoModel = require("../models/tradeInfo.model");
  *
  * @description :: Server-side logic for managing tradeInfos.
  */
+var {sendResponse} = require("./ControllerHepler");
 
-
-const getHourMinute = time => {
-  const data = time.split((/[: ]/))
-  return [parseInt(data[0]), parseInt(data[1])]
-}
 
 module.exports = {
   /**
@@ -29,21 +25,11 @@ module.exports = {
     })
 
     newInfo.save(function (err, newInfo) {
-      if (err) {
-        return res.status(500).json({
-          response_code: false,
-          message: "Error when saving tradeInfo",
-          data: err
-        });
-      }
-
-      return res.status(201).json({
-        response_code: true,
-        message: "creating tradeInfo succeed",
-        data: newInfo,
-      });
+      if (err) return sendResponse(res, 500, false, "Eror when saving tradeInfo.", err)
+      return sendResponse(res, 200, true, "creating tradeInfo succeed", newInfo)
     })
   },
+
   /**
    * tradeInfoController.create()
    * fetch data whose isSync is false
@@ -51,20 +37,9 @@ module.exports = {
    * response param: [status, tradeInfo]
    */
   fetch: async (req, res) => {
-
     tradeInfoModel.find({ isSync: false }, function (err, tradeInfo) {
-      if (err) {
-        return res.status(500).json({
-          response_code: false,
-          message: "Error when fetching tradeInfo whose isSync is false.",
-          data: err
-        });
-      }
-      return res.json({
-        response_code: true,
-        message: "Success when fetching tradeinfo whose isSync is false.",
-        data: tradeInfo
-      });
+      if (err) return sendResponse(res, 500, false, "Error when fetching tradeInfo whose isSync is false.", err)
+      return sendResponse(res, 200, true, "Success when fetching tradeinfo whose isSync is false.", tradeInfo)
     });
   },
 
@@ -76,26 +51,12 @@ module.exports = {
    */
   fetchsucceed: async (req, res) => {
     const id = req.body.id
-    if(id === undefined) {
-      return res.status(500).json({
-        response_code: false,
-        message: "No id array. Please send id array to remove",
-        data: "No id array"
-      })
-    }
+    if(id === undefined) 
+      return sendResponse(res, false, "No id array. Please send id array to remove", "No id array")
+
     tradeInfoModel.updateMany({_id: {$in: id}}, {isSync: false}, (err, tradeInfo) => {
-      if(err) {
-        return res.status(500).json({
-          response_code: false,
-          message: "Error when signing tradeIfno to make isSync true.",
-          data: err
-        })
-      }
-      return res.json({
-        response_code: true,
-        message: "Success when signing tradeInfo to make isSync true.",
-        data: tradeInfo
-      });
+      if (err) return sendResponse(res, 500, false, "Error when signing tradeIfno to make isSync true.", err)
+      return sendResponse(res, 200, true, "Success when signing tradeInfo to make isSync true.", tradeInfo)
     })
     
   }

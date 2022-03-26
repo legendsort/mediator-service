@@ -7,21 +7,8 @@ var crawlHistoryModel = require("../models/crawlHistory.model");
  * @description :: Server-side logic for managing crawl history.
  */
 
-const sendResponse = (res, status, response_code, message, data, expire = false) => {
-  if(expire){
-   return res.status(status).json({
-        response_code: response_code,
-        message: message,
-        ...data       
-    })
-  }else{
-     return res.status(status).json({
-      response_code: response_code,
-      message: message,
-      data:data
-    })
-  }
-}
+var {sendResponse} = require("./ControllerHepler");
+
 
 module.exports = {
   /**
@@ -36,7 +23,6 @@ module.exports = {
       return sendResponse(res, 200, true, "Success when saving crawl history.", newHistory);
     });
   },
-
   /**
    * crawlHistoryController.fetchAll()
    * fetch all data
@@ -73,7 +59,7 @@ module.exports = {
         pageSize: pageSize,
         totalPages: result.totalPages
       }
-      return sendResponse(res, 200, true, "Success paginating", data)
+      return sendResponse(res, 200, true, "Success paginating", data, true)
     })
 
   },
