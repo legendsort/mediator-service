@@ -1,0 +1,50 @@
+{
+    "scripts": [
+        {
+            "type": "visit",
+            "url" : "http://gitlab.local.com/users/sign_in"
+        }, 
+        {
+            "type": "wait",
+            "time": 300
+        }, 
+        {
+            "type": "input",
+            "selector": "#user_login",
+            "value": "legend"
+        },
+        {
+            "type": "input",
+            "selector": "#user_password",
+            "value": "passion1120"
+        },
+        {
+            "type": "click",
+            "selector": ".btn"
+        },
+        {
+            "type": "waitForNavigation"
+        },
+        {
+            "type": "checkWait",
+            "selector": "#__BVID__11"
+        },
+        {
+            "type": "click",
+            "selector": "#__BVID__11"
+        },
+        {
+            "type": "wait",
+            "time": 1000
+        }, 
+        {
+            "type": "click",
+            "selector": "#__BVID__11 > ul > li > form > div > div.gl-w-grid-size-40.gl-overflow-hidden.gl-p-3 > div > div > div.gl-display-flex.gl-align-items-stretch.gl-flex-direction-column.gl-mt-auto > div:nth-child(1) > a:nth-child(1)"
+        },
+        
+        {
+            "type": "success",
+            "text": "Success!!!"
+        }
+    ]
+}
