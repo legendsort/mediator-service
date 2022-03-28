@@ -8,11 +8,14 @@ var jwt = require("express-jwt");
 const fileupload = require("express-fileupload");
 const bodyParser = require("body-parser");
 require("dotenv").config();
+
 var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
 var cloudRouter = require("./routes/cloud");
-const { FTPService } = require("./services");
-const { BrowserService } = require("./services");
+const { FTPService, BrowserService } = require("./services");
+var tradeInfoRouter = require("./routes/tradeInfo.route");
+var crawlHistoryRouter = require("./routes/crawlHistory.route");
+
 const mongoose = require("mongoose");
 var cors = require("cors");
 let ftpService = new FTPService();
@@ -65,8 +68,10 @@ app.use(
 app.use(express.static(path.join(__dirname, "public")));
 app.set("public-dir", path.join(__dirname, "public"));
 
-app.use("/", indexRouter);
-app.use("/users", usersRouter);
-app.use("/cloud", cloudRouter);
-
+const baseURL = process.env.BASE_URL;
+app.use(baseURL + "/", indexRouter);
+app.use(baseURL + "/users", usersRouter);
+app.use(baseURL + "/cloud", cloudRouter);
+app.use(baseURL + "/bank/trade-info", tradeInfoRouter);
+app.use(baseURL + "/bank/crawl-history", crawlHistoryRouter);
 module.exports = app;
