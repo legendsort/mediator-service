@@ -1,5 +1,6 @@
 /** @format */
 
+require("dotenv").config();
 var express = require("express");
 var path = require("path");
 var cookieParser = require("cookie-parser");
@@ -7,16 +8,18 @@ var logger = require("morgan");
 var jwt = require("express-jwt");
 const fileupload = require("express-fileupload");
 const bodyParser = require("body-parser");
-require("dotenv").config();
+const mongoose = require("mongoose");
 
+// import routes
 var indexRouter = require("./routes/index");
-var usersRouter = require("./routes/users");
-var cloudRouter = require("./routes/cloud");
-const { FTPService, BrowserService } = require("./services");
+var cloudRouter = require("./routes/cloud.route");
+var connectRouter = require("./routes/connect.route");
 var tradeInfoRouter = require("./routes/tradeInfo.route");
 var crawlHistoryRouter = require("./routes/crawlHistory.route");
 
-const mongoose = require("mongoose");
+// import services
+const { FTPService, BrowserService } = require("./services");
+
 var cors = require("cors");
 let ftpService = new FTPService();
 let browserService = new BrowserService();
@@ -28,6 +31,7 @@ try {
 }
 
 var app = express();
+
 // register service to express application
 app.set("ftp-service", ftpService);
 app.set("browser-service", browserService);
@@ -49,7 +53,7 @@ app.use(
 );
 app.use(
   jwt({
-    secret: "hello world !",
+    secret: process.env.SECRET_KEY || "hello world !",
     algorithms: ["HS256"],
     credentialsRequired: false,
     getToken: function fromHeaderOrQuerystring(req) {
@@ -68,9 +72,29 @@ app.use(
 app.use(express.static(path.join(__dirname, "public")));
 app.set("public-dir", path.join(__dirname, "public"));
 
+// register route
 const baseURL = process.env.BASE_URL;
 app.use(baseURL + "/", indexRouter);
-app.use(baseURL + "/users", usersRouter);
+app.use(
+  `${baseURL}/connect`,
+  jwt({
+    secret: process.env.SECRET_KEY || "hello world !",
+    algorithms: ["HS256"],
+    credentialsRequired: true,
+    getToken: function fromHeaderOrQuerystring(req) {
+      if (
+        req.headers.authorization &&
+        req.headers.authorization.split(" ")[0] === "Bearer"
+      ) {
+        return req.headers.authorization.split(" ")[1];
+      } else if (req.query && req.query.token) {
+        return req.query.token;
+      }
+      return null;
+    },
+  }),
+  connectRouter,
+);
 app.use(baseURL + "/cloud", cloudRouter);
 app.use(baseURL + "/bank/trade-info", tradeInfoRouter);
 app.use(baseURL + "/bank/crawl-history", crawlHistoryRouter);

@@ -2,7 +2,7 @@
 
 var express = require("express");
 var router = express.Router();
-var ftpController = require("../controllers/FTPController");
+var ftpController = require("../controllers/ftp.controller");
 
 router.get("/list", ftpController.list);
 router.post("/rename", ftpController.rename);
