@@ -22,11 +22,11 @@ app.set("port", port);
  */
 
 var server = http.createServer(app);
-socket.io.attach(server, {
+socket.io.listen(server, {
   cors: {
-    origin: "http://192.168.4.9:8000",
-    methods: ["GET", "POST", "PUT"],
-    credentials: true,
+    origin: "*",
+    methods: ["PUT", "GET", "POST", "DELETE", "OPTIONS"],
+    credentials: false,
   },
 });
 app.set("socket", socket);

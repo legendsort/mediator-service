@@ -1,5 +1,6 @@
 /** @format */
 
+require("dotenv").config();
 var express = require("express");
 var path = require("path");
 var cookieParser = require("cookie-parser");
@@ -7,6 +8,7 @@ var logger = require("morgan");
 var jwt = require("express-jwt");
 const fileupload = require("express-fileupload");
 const bodyParser = require("body-parser");
+<<<<<<< HEAD
 require("dotenv").config();
 
 var indexRouter = require("./routes/index");
@@ -17,17 +19,23 @@ var crawlHistoryRouter = require('./routes/crawlHistory.route')
 
 const { FTPService } = require("./services");
 
+=======
+>>>>>>> bb75066b9cb35a87e133bb401dd4168510af78f8
 const mongoose = require("mongoose");
+
+// import routes
+var indexRouter = require("./routes/index");
+var cloudRouter = require("./routes/cloud.route");
+var connectRouter = require("./routes/connect.route");
+var tradeInfoRouter = require("./routes/tradeInfo.route");
+var crawlHistoryRouter = require("./routes/crawlHistory.route");
+
+// import services
+const { FTPService, BrowserService } = require("./services");
+
 var cors = require("cors");
 let ftpService = new FTPService();
-const jwt_parser = require("jsonwebtoken");
-
-// connect mongodb
-// console.log(
-//   jwt_parser.sign({ foo: "bar" }, "your secret or public key", {
-//     expiresIn: 60 * 60 * 60,
-//   }),
-// );
+let browserService = new BrowserService();
 
 try {
   mongoose.connect(process.env.MONGODB_URL || "mongodb://localhost/Mediator");
@@ -36,8 +44,10 @@ try {
 }
 
 var app = express();
+
 // register service to express application
 app.set("ftp-service", ftpService);
+app.set("browser-service", browserService);
 
 //
 app.use(logger("dev"));
@@ -56,7 +66,7 @@ app.use(
 );
 app.use(
   jwt({
-    secret: "hello world !",
+    secret: process.env.SECRET_KEY || "hello world !",
     algorithms: ["HS256"],
     credentialsRequired: false,
     getToken: function fromHeaderOrQuerystring(req) {
@@ -75,9 +85,35 @@ app.use(
 app.use(express.static(path.join(__dirname, "public")));
 app.set("public-dir", path.join(__dirname, "public"));
 
+<<<<<<< HEAD
 const baseURL = process.env.BASE_URL
 app.use(baseURL + "/", indexRouter);
 app.use(baseURL + "/users", usersRouter);
+=======
+// register route
+const baseURL = process.env.BASE_URL;
+app.use(baseURL + "/", indexRouter);
+app.use(
+  `${baseURL}/connect`,
+  jwt({
+    secret: process.env.SECRET_KEY || "hello world !",
+    algorithms: ["HS256"],
+    credentialsRequired: true,
+    getToken: function fromHeaderOrQuerystring(req) {
+      if (
+        req.headers.authorization &&
+        req.headers.authorization.split(" ")[0] === "Bearer"
+      ) {
+        return req.headers.authorization.split(" ")[1];
+      } else if (req.query && req.query.token) {
+        return req.query.token;
+      }
+      return null;
+    },
+  }),
+  connectRouter,
+);
+>>>>>>> bb75066b9cb35a87e133bb401dd4168510af78f8
 app.use(baseURL + "/cloud", cloudRouter);
 app.use(baseURL + "/bank/trade-info", tradeInfoRouter);
 app.use(baseURL + "/bank/crawl-history", crawlHistoryRouter);

@@ -31,7 +31,25 @@ module.exports = {
   /**
    * cloudInfoController.show()
    */
-  copy: async (req, res) => {},
+  copy: async (req, res) => {
+    var cloudInfo = new CloudinfoModel({
+      url: req.body.url,
+      username: req.body.username,
+      password: req.body.password,
+      port: req.body.port,
+    });
+
+    cloudInfo.save(function (err, cloudInfo) {
+      if (err) {
+        return res.status(500).json({
+          message: "Error when creating cloudInfo",
+          error: err,
+        });
+      }
+
+      return res.status(201).json(cloudInfo);
+    });
+  },
 
   /**
    * cloudInfoController.create()
