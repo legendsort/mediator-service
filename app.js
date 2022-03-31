@@ -8,19 +8,6 @@ var logger = require("morgan");
 var jwt = require("express-jwt");
 const fileupload = require("express-fileupload");
 const bodyParser = require("body-parser");
-<<<<<<< HEAD
-require("dotenv").config();
-
-var indexRouter = require("./routes/index");
-var usersRouter = require("./routes/users");
-var cloudRouter = require("./routes/cloud");
-var tradeInfoRouter = require('./routes/tradeInfo.route')
-var crawlHistoryRouter = require('./routes/crawlHistory.route')
-
-const { FTPService } = require("./services");
-
-=======
->>>>>>> bb75066b9cb35a87e133bb401dd4168510af78f8
 const mongoose = require("mongoose");
 
 // import routes
@@ -85,11 +72,6 @@ app.use(
 app.use(express.static(path.join(__dirname, "public")));
 app.set("public-dir", path.join(__dirname, "public"));
 
-<<<<<<< HEAD
-const baseURL = process.env.BASE_URL
-app.use(baseURL + "/", indexRouter);
-app.use(baseURL + "/users", usersRouter);
-=======
 // register route
 const baseURL = process.env.BASE_URL;
 app.use(baseURL + "/", indexRouter);
@@ -113,7 +95,6 @@ app.use(
   }),
   connectRouter,
 );
->>>>>>> bb75066b9cb35a87e133bb401dd4168510af78f8
 app.use(baseURL + "/cloud", cloudRouter);
 app.use(baseURL + "/bank/trade-info", tradeInfoRouter);
 app.use(baseURL + "/bank/crawl-history", crawlHistoryRouter);
