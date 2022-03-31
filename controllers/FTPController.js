@@ -10,7 +10,23 @@ module.exports = {
   /**
    * cloudInfoController.list()
    */
-  list: async (req, res) => {},
+  list: async (req, res) => {
+    try{
+      const ftpService = req.app.get("ftp-service");
+      const cloudInfo = await CloudinfoModel.findOne({ username: "mediator"});
+      console.log(cloudInfo, typeof cloudInfo)
+      if(typeof cloudInfos !== undefined && cloudInfo !== null) {
+        await ftpService.loginServer(
+          cloudInfo.url,
+          cloudInfo.username,
+          cloudInfo.password
+        );
+        return await ftpService.getList()
+      }
+    } catch(e) {
+      console.log(e)
+    }
+  },
 
   /**
    * cloudInfoController.show()

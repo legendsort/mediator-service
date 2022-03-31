@@ -15,7 +15,7 @@ var cloudRouter = require("./routes/cloud");
 var tradeInfoRouter = require('./routes/tradeInfo.route')
 var crawlHistoryRouter = require('./routes/crawlHistory.route')
 
-const { CrawlerService, FTPService } = require("./services");
+const { FTPService } = require("./services");
 
 const mongoose = require("mongoose");
 var cors = require("cors");
