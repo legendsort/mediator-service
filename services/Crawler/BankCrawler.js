@@ -1,5 +1,3 @@
-/** @format */
-
 const puppeteer = require("puppeteer-extra");
 const res = require("express/lib/response");
 const axios = require("axios");
@@ -35,6 +33,7 @@ class MyCrawler {
       console.log(e);
       return false;
     }
+
   };
 
   openBlankPage = async () => {

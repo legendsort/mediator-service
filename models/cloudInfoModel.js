@@ -5,10 +5,8 @@ var Schema = mongoose.Schema;
 
 var cloudInfoSchema = new Schema({
   url: String,
-  type: String,
-  data: String,
-  real_date_time: Number,
-  is_sync: Boolean,
+  username: String,
+  password: String
 });
 
 module.exports = mongoose.model("cloudInfo", cloudInfoSchema);
