@@ -3,16 +3,13 @@ const CloudinfoModel = require("../models/cloudInfoModel");
 var {sendResponse} = require("./ControllerHepler");
 
 const fs = require("fs");
-
-const defaultUser = "mediator";
-const defaultHost = "192.168.4.82"
+const path = require("path");
 
 const getFtpService = async (req) => {
   const ftpService = req.app.get('ftp-service');
 
-  const username = req.body.username || defaultUser;
-  const host = req.body.host || defaultHost;
-  
+  const username = req.body.username || process.env.FTP_USER;
+  const host = req.body.host || process.env.FTP_SERVER;
   const cloudInfo = await CloudinfoModel.findOne({ username: username, host: host});
   if(typeof cloudInfos !== undefined && cloudInfo !== null) {
     await ftpService.loginServer(
@@ -22,7 +19,7 @@ const getFtpService = async (req) => {
     );
     return ftpService;
   }
-  
+  throw "cannot login to ftp server";
 }
 
 /**
@@ -41,7 +38,7 @@ module.exports = {
       const ans = await ftpService.getList(path);
       return sendResponse(res, 200, true, "get list succeed", ans);
     } catch(e) {
-      console.log(e)
+      console.log("Get list error!\n", e)
       return sendResponse(res, 500, false, "get list failed", e);
 
     }
@@ -64,7 +61,7 @@ module.exports = {
       });
       return sendResponse(res, 200, true, "copy file succeed", {src: srcPath, dst: dstPath})
     } catch(e) {
-      console.log(e)
+      console.log("copy file error!\n", e)
       return sendResponse(res, 500, false, "copy file failed", e);
     }
   },
@@ -88,7 +85,7 @@ module.exports = {
       await ftpService.remove(srcPath)
       return sendResponse(res, 200, true, "copy file succeed", {src: srcPath, dst: dstPath})
     } catch(e) {
-      console.log(e)
+      console.log("move file error!\n", e)
       return sendResponse(res, 500, false, "copy file failed", e);
     }
   },
@@ -101,11 +98,12 @@ module.exports = {
       const ftpService = await getFtpService(req);
       const srcPath = req.body.srcPath;
       const dstPath = req.body.dstPath;
-
+      const dir = path.dirname(srcPath)
       await ftpService.rename(srcPath, dstPath)
-      return sendResponse(res, 200, true, "rename file succeed", {src: srcPath, dst: dstPath});
+      const list = await ftpService.getList(dir)
+      return sendResponse(res, 200, true, "rename file succeed", list);
     } catch(e) {
-      console.log(e)
+      console.log("rename file error!\n", e)
       return sendResponse(res, 500, false, "rename file failed", e);
     }
 
@@ -122,7 +120,7 @@ module.exports = {
       return sendResponse(res, 200, true, "download file succeed", {src: srcPath, dst: dstPath});
 
     } catch(e) {
-      console.log(e)
+      console.log("download file error!\n", e)
       return sendResponse(res, 500, false, "download file failed", e);
     }
   },
@@ -144,7 +142,7 @@ module.exports = {
       });
       return sendResponse(res, 200, true, "upload file succeed", {uploadPath: uploadPath, name: req.files.file.name});
     } catch (e) {
-      console.log(e)
+      console.log("upload file error!\n", e)
       return sendResponse(res, 500, false, "upload file failed", e);
     }
   },
@@ -155,12 +153,16 @@ module.exports = {
   remove: async (req, res) => {
     try{
       const ftpService = await getFtpService(req);
-      const path = req.body.path 
-      await ftpService.remove(path)
-      return sendResponse(res, 200, true, "remove file succeed", {src: srcPath, dst: dstPath});
-
+      const items = req.body.path 
+      if(items.length > 0) {
+        for(const item of items) {
+          await ftpService.remove(item)
+        }
+        const list = await ftpService.getList(path.dirname(items[0].path))
+        return sendResponse(res, 200, true, "remove file succeed", list);
+      }
     } catch(e) {
-      console.log(e)
+      console.log("remove file error!\n", e)
       return sendResponse(res, 500, false, "remove file failed", e);
     }
   },

@@ -7,47 +7,70 @@ const fs = require("fs");
 class FTPService {
   constructor() {
     this.client = {};
+    this.user = null;
   }
+
+  checkValidPath = filePath => {
+    return filePath === path.basename(filePath)
+  }
+  checkDirectoryExist = filePath => {
+    return fs.existsSync(filePath);
+  }
+
+  checkDirectory = async (filePath) => {
+    return await this.checkDirectoryExist(filePath) && await fs.stat(filePath).isDirectory();
+  }
+
+  checkFile = async (filePath) => {
+    return await this.checkDirectoryExist(filePath) && await fs.statSync(filePath).isFile();
+  }
+
 
   ensureDirectoryExistence = filePath => {
     const dirname = path.dirname(filePath);
-    if (fs.existsSync(dirname)) {
-      return true;
-    }
+    if (this.checkDirectoryExist(dirname)) return true;
     this.ensureDirectoryExistence(dirname);
     fs.mkdirSync(dirname);
 }
 
   async cd(path) {
     try{
+      // if(this.checkDirectory(path) === false) throw "such directory not exist";
       await this.client.cd(path)
     } catch (error) {
-      console.error(error);
+      console.error("cd path error!\n", error);
       throw error;
     }
   }
   
   async loginServer(host, user, password) {
-    const client = new ftp.Client();
-    client.ftp.verbose = true;
+   
     try {
-      await client.access({
+      const newUser = {
         host: host,
         user: user,
         password: password,
         // secure: true,
-      });
-      this.client = client;
+      }
+      
+      if( JSON.stringify(this.user) !== JSON.stringify(newUser) ) {
+
+        const client = new ftp.Client();
+        client.ftp.verbose = true;
+        await client.access(newUser);
+        this.client = client;
+        this.user = newUser;
+      }
+     
     } catch (error) {
-      console.log(error);
+      console.error("login server error!\n", error);
       throw error;
     }
   }
   async getList(path) {
     try {
       return await this.client.list(path);
-    } catch (error) {
-      console.log(error);
+    } catch (error) { 
       throw error;
     }
   }
@@ -61,22 +84,27 @@ class FTPService {
 
       return await this.client.rename(srcBaseName, dstName);
     } catch(error) {
-      console.log(error);
       throw error;
     }
   }
 
-  async remove(dstPath) {
+  async remove(item) {
     try{
+      const dstPath = item.path;
+      const type = item.type;
+      console.log(dstPath, type)
       const pathBaseName = path.basename(dstPath);
       const pathDirName = path.dirname(dstPath);
+      
       await this.cd(pathDirName);
-      return await this.client.remove(pathBaseName)
+      return type === 1 ? await this.client.remove(pathBaseName) : await this.client.removeDir(pathBaseName)
+      
     } catch (error) {
-      console.log(error);
       throw error;
     }
   }
+
+  
 
   async download(srcPath, dstPath) {
     try{
@@ -87,7 +115,6 @@ class FTPService {
       this.ensureDirectoryExistence(dstPath);
       return await this.client.downloadTo(fs.createWriteStream(dstPath), srcBaseName)
     } catch(error) {
-      console.log(error);
       throw error;
     }
   }
@@ -100,7 +127,6 @@ class FTPService {
       await this.cd(dstDirName)
       return await this.client.uploadFrom(srcPath, dstBaseName)
     } catch(error) {
-      console.log(error);
       throw error;
     }
   }
