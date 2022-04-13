@@ -3,6 +3,8 @@ const CloudinfoModel = require("../models/cloudInfoModel");
 var {sendResponse} = require("./ControllerHepler");
 
 const fs = require("fs");
+const archiver = require("archiver");
+
 const path = require("path");
 
 const getFtpService = async (req) => {
@@ -20,6 +22,36 @@ const getFtpService = async (req) => {
     return ftpService;
   }
   throw "cannot login to ftp server";
+}
+
+const archive = async (path, tmpPath, name) => {
+  
+  const fileName = path + name + ".zip";
+  console.log(path, name);
+  const output = fs.createWriteStream(fileName);
+  const archive = archiver('zip', {
+    zlib: { level: 9 } 
+  });
+  output.on('close', function() {
+    console.log(archive.pointer() + ' total bytes');
+    console.log('archiver has been finalized and the output file descriptor has closed.');
+  });
+  output.on('end', function() {
+    console.log('Data has been drained');
+  });
+  archive.on('warning', function(err) {
+    if (err.code === 'ENOENT') {
+      console.log(err.code);
+    } else {
+      throw err;
+    }
+  });
+  archive.on('error', function(err) {
+    throw err;
+  });
+  archive.pipe(output);
+  archive.directory(tmpPath, false);
+  archive.finalize();
 }
 
 /**
@@ -81,7 +113,6 @@ module.exports = {
       fs.unlinkSync(tmpPath, {
         force: true,
       });
-      console.log(srcPath)
       await ftpService.remove(srcPath)
       return sendResponse(res, 200, true, "copy file succeed", {src: srcPath, dst: dstPath})
     } catch(e) {
@@ -113,11 +144,20 @@ module.exports = {
    */
   download: async (req, res) => {
     try {
+      
       const ftpService = await getFtpService(req);
-      const srcPath = req.body.srcPath;
-      const dstPath = `${req.app.get("public-dir")}\\ftp\\upload\\${req.body.dstPath}`;
-      await ftpService.download(srcPath, dstPath)
-      return sendResponse(res, 200, true, "download file succeed", {src: srcPath, dst: dstPath});
+      const items = req.body.srcPath;
+      const target = req.body.dstPath;
+      const tmpPath = `${req.app.get("public-dir")}/ftp/temp/${target}/`;
+      const dstPath = `${req.app.get("public-dir")}/ftp/upload/`;
+      if(items.length > 0) {
+        for(const item of items) {
+         
+          await ftpService.download(item, tmpPath)
+        }
+      }
+      await archive(dstPath, tmpPath, target);
+      return sendResponse(res, 200, true, "download file succeed", items);
 
     } catch(e) {
       console.log("download file error!\n", e)

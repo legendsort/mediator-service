@@ -92,7 +92,7 @@ class FTPService {
     try{
       const dstPath = item.path;
       const type = item.type;
-      console.log(dstPath, type)
+      
       const pathBaseName = path.basename(dstPath);
       const pathDirName = path.dirname(dstPath);
       
@@ -104,16 +104,18 @@ class FTPService {
     }
   }
 
-  
-
-  async download(srcPath, dstPath) {
+  async download(item, dir) {
     try{
+      const srcPath = item.path;
+      const type = item.type;
+      
       const srcBaseName = path.basename(srcPath);
       const srcDirName = path.dirname(srcPath);
       
-      await this.cd(srcDirName)
+      const dstPath = dir + srcBaseName;
+      await this.cd(srcDirName);
       this.ensureDirectoryExistence(dstPath);
-      return await this.client.downloadTo(fs.createWriteStream(dstPath), srcBaseName)
+      return type === 1 ? await this.client.downloadTo(fs.createWriteStream(dstPath), srcBaseName) : await this.client.downloadToDir(dstPath, srcBaseName)
     } catch(error) {
       throw error;
     }
