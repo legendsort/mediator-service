@@ -1,0 +1,186 @@
+{
+	"info": {
+		"_postman_id": "3ebc0025-369b-4b87-a24e-dde10366a117",
+		"name": "Meditor",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "account",
+			"item": [
+				{
+					"name": "auth",
+					"item": [
+						{
+							"name": "get token",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{$token}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"username\": \"admin\",\r\n    \"password\": \"qwe\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "192.168.4.9:8000/api/token/",
+									"host": [
+										"192",
+										"168",
+										"4",
+										"9"
+									],
+									"port": "8000",
+									"path": [
+										"api",
+										"token",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "token refresh",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{$token}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"refresh\":\"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTY0Njk3NjkxNiwiaWF0IjoxNjQ2ODkwNTE2LCJqdGkiOiI2MDQ5ZTZiNThiNjA0YzY0YWI4NzcwMWM4OWEyMWZjNCIsInVzZXJfaWQiOjN9.AnRKL5ETqj8j_u_HdtM57GZixsxd_y6uSm9K9U6pL4E\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "192.168.4.9:8000/api/token/refresh/",
+									"host": [
+										"192",
+										"168",
+										"4",
+										"9"
+									],
+									"port": "8000",
+									"path": [
+										"api",
+										"token",
+										"refresh",
+										""
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "token verify",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{$token}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"token\":\"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoicmVmcmVzaCIsImV4cCI6MTY0Njk3NjkxNiwiaWF0IjoxNjQ2ODkwNTE2LCJqdGkiOiI2MDQ5ZTZiNThiNjA0YzY0YWI4NzcwMWM4OWEyMWZjNCIsInVzZXJfaWQiOjN9.AnRKL5ETqj8j_u_HdtM57GZixsxd_y6uSm9K9U6pL4E\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "192.168.4.9:8000/api/token/verify/",
+									"host": [
+										"192",
+										"168",
+										"4",
+										"9"
+									],
+									"port": "8000",
+									"path": [
+										"api",
+										"token",
+										"verify",
+										""
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "bank",
+			"item": [
+				{
+					"name": "fetch Bank data",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjQ4NDgyMjIzLCJpYXQiOjE2NDg0NjA2MjMsImp0aSI6IjhhYjMxMjYyNTE5MzQzZThhMTgxZTZlNzFiODZhMTA3IiwidXNlcl9pZCI6MX0.cp2rjThRiJ6BbK5kHuXQc7gyrj5EZWQ9o0xgS1u9S0s",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://192.168.4.9:8000/api/bank/data",
+							"protocol": "http",
+							"host": [
+								"192",
+								"168",
+								"4",
+								"9"
+							],
+							"port": "8000",
+							"path": [
+								"api",
+								"bank",
+								"data"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
