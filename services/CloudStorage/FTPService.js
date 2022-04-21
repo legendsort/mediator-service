@@ -121,13 +121,20 @@ class FTPService {
     }
   }
 
-  async upload(srcPath, dstPath) {
+  async upload(srcPath, dstPath, type = 1) {
     try{
+    
       const dstBaseName = path.basename(dstPath);
       const dstDirName = path.dirname(dstPath);
       await this.client.ensureDir(dstDirName)
       await this.cd(dstDirName)
-      return await this.client.uploadFrom(srcPath, dstBaseName)
+      if(type === 1) {
+        return await this.client.uploadFrom(srcPath, dstPath);
+      }
+      else {
+        return await this.client.uploadFromDir(srcPath, dstDirName)
+      }
+      
     } catch(error) {
       throw error;
     }
