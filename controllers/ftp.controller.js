@@ -89,9 +89,13 @@ module.exports = {
       if(items.length > 0) {
         for(const srcPath of items) {
           const filename = path.basename(srcPath.path);
+          console.log("[ftp controller] ===> ", srcPath, tmpPath, filename)
           await ftpService.download(srcPath, tmpPath)
+          console.log("----> download succeed")
           const type = srcPath.type;
-          await ftpService.upload(tmpPath + filename, path.join(dstPath, filename), type)
+          
+          if(type === 1) await ftpService.upload(tmpPath + filename, path.join(dstPath, filename), type);
+          else await ftpService.upload(path.join(tmpPath, filename), path.join(dstPath, filename), type);
 
         }
       }

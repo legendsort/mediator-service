@@ -53,14 +53,14 @@ class FTPService {
         // secure: true,
       }
       
-      if( JSON.stringify(this.user) !== JSON.stringify(newUser) ) {
+      // if( JSON.stringify(this.user) !== JSON.stringify(newUser) ) {
 
         const client = new ftp.Client();
-        client.ftp.verbose = true;
+        // client.ftp.verbose = true;
         await client.access(newUser);
         this.client = client;
         this.user = newUser;
-      }
+      // }
      
     } catch (error) {
       console.error("login server error!\n", error);
@@ -115,6 +115,8 @@ class FTPService {
       const dstPath = dir + srcBaseName;
       await this.cd(srcDirName);
       this.ensureDirectoryExistence(dstPath);
+      console.log("[FTPService] ====>", dstPath, type)
+
       return type === 1 ? await this.client.downloadTo(fs.createWriteStream(dstPath), srcBaseName) : await this.client.downloadToDir(dstPath, srcBaseName)
     } catch(error) {
       throw error;
@@ -123,8 +125,7 @@ class FTPService {
 
   async upload(srcPath, dstPath, type = 1) {
     try{
-    
-      const dstBaseName = path.basename(dstPath);
+      console.log("[FTPService upload] ===> ", srcPath, dstPath)
       const dstDirName = path.dirname(dstPath);
       await this.client.ensureDir(dstDirName)
       await this.cd(dstDirName)
@@ -132,7 +133,7 @@ class FTPService {
         return await this.client.uploadFrom(srcPath, dstPath);
       }
       else {
-        return await this.client.uploadFromDir(srcPath, dstDirName)
+        return await this.client.uploadFromDir(srcPath, dstPath)
       }
       
     } catch(error) {
