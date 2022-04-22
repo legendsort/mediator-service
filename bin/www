@@ -8,12 +8,17 @@
 var app = require("../app");
 var debug = require("debug")("genux-service:server");
 var http = require("http");
+
 let socket = require("../socket");
 var port = normalizePort(process.env.PORT || "3000");
 
 var cronService = require('../cron');
+try{
+  cronService.runCron()
+} catch(e) {
+  console.log(e);
+}
 
-// cronService.runCron()
 
 app.set("port", port);
 

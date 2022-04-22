@@ -1,8 +1,5 @@
 const puppeteer = require("puppeteer-extra");
-const res = require("express/lib/response");
 const axios = require("axios");
-const FormData = require("form-data");
-const sleep = require("await-sleep");
 
 const baseURL = process.env.BASE_URL;
 const serverURL = process.env.WIPO_SERVER;
@@ -27,7 +24,9 @@ class MyCrawler {
   };
 
   launchBrowser = async () => {
+    console.log("============>", this.configs)
     try {
+      
       this.browser = await puppeteer.launch(this.configs);
     } catch (e) {
       console.log(e);
