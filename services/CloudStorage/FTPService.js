@@ -53,14 +53,14 @@ class FTPService {
         // secure: true,
       }
       
-      // if( JSON.stringify(this.user) !== JSON.stringify(newUser) ) {
+      if( JSON.stringify(this.user) !== JSON.stringify(newUser) ) {
 
         const client = new ftp.Client();
         // client.ftp.verbose = true;
         await client.access(newUser);
         this.client = client;
         this.user = newUser;
-      // }
+      }
      
     } catch (error) {
       console.error("login server error!\n", error);

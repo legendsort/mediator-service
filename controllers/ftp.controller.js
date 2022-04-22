@@ -137,11 +137,25 @@ module.exports = {
       const ftpService = await getFtpService(req);
       const srcPath = req.body.srcPath;
       const dstPath = req.body.dstPath;
-      const dir = path.dirname(srcPath)
       
-      await ftpService.rename(srcPath, dstPath)
-      const list = await ftpService.getList(dir)
-      return sendResponse(res, 200, true, "rename file succeed", list);
+      console.log("[ftp.controller rename] ===> ", srcPath, dstPath);
+      if(Array.isArray(srcPath)) {
+        const dir = path.dirname(srcPath[0].path);
+        for(const item of srcPath) {
+          const filename = path.basename(item.path);
+          console.log("[ftp.controller rename] ===> ", item, path.join(dstPath, filename));
+          await ftpService.rename(item.path, path.join(dstPath, filename));
+        }
+        const list = await ftpService.getList(dir);
+        return sendResponse(res, 200, true, "rename file succeed", list);
+      }
+      else {
+        const dir = path.dirname(srcPath);
+        await ftpService.rename(srcPath, dstPath)
+        const list = await ftpService.getList(dir)
+        return sendResponse(res, 200, true, "rename file succeed", list);
+      }
+      
     } catch(e) {
       console.log("rename file error!\n", e)
       return sendResponse(res, 500, false, "rename file failed", e);
