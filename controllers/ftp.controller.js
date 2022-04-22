@@ -27,7 +27,6 @@ const getFtpService = async (req) => {
 const archive = async (path, tmpPath, name) => {
   
   const fileName = path + name + ".zip";
-  console.log(path, name);
   const output = fs.createWriteStream(fileName);
   const archive = archiver('zip', {
     zlib: { level: 9 } 
@@ -82,16 +81,25 @@ module.exports = {
   copy: async (req, res) => {
     try {
       const ftpService = await getFtpService(req);
-      const srcPath = req.body.srcPath;
+      const items = req.body.srcPath;
       const dstPath = req.body.dstPath;
-      const tmpPath = `${req.app.get("public-dir")}\\ftp\\upload\\${srcPath}`;
+      
+      const tmpPath = `${req.app.get("public-dir")}/ftp/temp/`;
+      console.log(items)
+      if(items.length > 0) {
+        for(const srcPath of items) {
+          const filename = path.basename(srcPath.path);
+          console.log("[ftp controller] ===> ", srcPath, tmpPath, filename)
+          await ftpService.download(srcPath, tmpPath)
+          console.log("----> download succeed")
+          const type = srcPath.type;
+          
+          if(type === 1) await ftpService.upload(tmpPath + filename, path.join(dstPath, filename), type);
+          else await ftpService.upload(path.join(tmpPath, filename), path.join(dstPath, filename), type);
 
-      await ftpService.download(srcPath, tmpPath)
-      await ftpService.upload(tmpPath, dstPath)
-      fs.unlinkSync(tmpPath, {
-        force: true,
-      });
-      return sendResponse(res, 200, true, "copy file succeed", {src: srcPath, dst: dstPath})
+        }
+      }
+      return sendResponse(res, 200, true, "copy file succeed", {src: items, dst: dstPath})
     } catch(e) {
       console.log("copy file error!\n", e)
       return sendResponse(res, 500, false, "copy file failed", e);
@@ -129,10 +137,25 @@ module.exports = {
       const ftpService = await getFtpService(req);
       const srcPath = req.body.srcPath;
       const dstPath = req.body.dstPath;
-      const dir = path.dirname(srcPath)
-      await ftpService.rename(srcPath, dstPath)
-      const list = await ftpService.getList(dir)
-      return sendResponse(res, 200, true, "rename file succeed", list);
+      
+      console.log("[ftp.controller rename] ===> ", srcPath, dstPath);
+      if(Array.isArray(srcPath)) {
+        const dir = path.dirname(srcPath[0].path);
+        for(const item of srcPath) {
+          const filename = path.basename(item.path);
+          console.log("[ftp.controller rename] ===> ", item, path.join(dstPath, filename));
+          await ftpService.rename(item.path, path.join(dstPath, filename));
+        }
+        const list = await ftpService.getList(dir);
+        return sendResponse(res, 200, true, "rename file succeed", list);
+      }
+      else {
+        const dir = path.dirname(srcPath);
+        await ftpService.rename(srcPath, dstPath)
+        const list = await ftpService.getList(dir)
+        return sendResponse(res, 200, true, "rename file succeed", list);
+      }
+      
     } catch(e) {
       console.log("rename file error!\n", e)
       return sendResponse(res, 500, false, "rename file failed", e);
@@ -152,7 +175,6 @@ module.exports = {
       const dstPath = `${req.app.get("public-dir")}/ftp/upload/`;
       if(items.length > 0) {
         for(const item of items) {
-         
           await ftpService.download(item, tmpPath)
         }
       }

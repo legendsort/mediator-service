@@ -13,6 +13,7 @@ const mongoose = require("mongoose");
 // import routes
 var indexRouter = require("./routes/index");
 var cloudRouter = require("./routes/cloud.route");
+var configRouter = require("./routes/config.route");
 var connectRouter = require("./routes/connect.route");
 var tradeInfoRouter = require("./routes/tradeInfo.route");
 var crawlHistoryRouter = require("./routes/crawlHistory.route");
@@ -96,6 +97,7 @@ app.use(
   connectRouter,
 );
 app.use(baseURL + "/cloud", cloudRouter);
+app.use(baseURL + "/config", configRouter);
 app.use(baseURL + "/bank/trade-info", tradeInfoRouter);
 app.use(baseURL + "/bank/crawl-history", crawlHistoryRouter);
 module.exports = app;

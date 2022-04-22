@@ -62,3 +62,5 @@ typings/
 public/ftp/upload
 
 .vscode
+
+.env
