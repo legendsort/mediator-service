@@ -53,12 +53,13 @@ typings/
 
 # Yarn Integrity file
 .yarn-integrity
-
+yarn.lock
+package-lock.json
 # dotenv environment variables file
 
 # next.js build output
 .next
-
+public/*
 public/ftp/upload
 
 .vscode

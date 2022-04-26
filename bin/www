@@ -8,17 +8,19 @@
 var app = require("../app");
 var debug = require("debug")("genux-service:server");
 var http = require("http");
+require("dotenv").config();
 
-let socket = require("../socket");
+let socket = require("../services/socket");
 var port = normalizePort(process.env.PORT || "3000");
 
-var cronService = require('../cron');
-try{
-  cronService.runCron()
-} catch(e) {
+var cronService = require("../cron");
+try {
+  if (!process.env.CRON_OFF) {
+    cronService.runCron();
+  }
+} catch (e) {
   console.log(e);
 }
-
 
 app.set("port", port);
 
@@ -39,9 +41,8 @@ app.set("socket", socket);
  * Listen on provided port, on all network interfaces.
  */
 
-
 server.listen(port, () => {
-  console.log("Server is running on port ", port)
+  console.log("Server is running on port ", port);
 });
 server.on("error", onError);
 server.on("listening", onListening);

@@ -2,7 +2,7 @@
 
 const io = require("socket.io")();
 const socketioJwt = require("socketio-jwt");
-const web_app = require("./app");
+const web_app = require("../app");
 
 const socket = {
   io: io,
