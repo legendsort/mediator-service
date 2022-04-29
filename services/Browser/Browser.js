@@ -1,4 +1,5 @@
 /** @format */
+const { ConsoleMessage } = require("puppeteer");
 const puppeteer = require("puppeteer-extra");
 const {
   installMouseHelper,
@@ -17,7 +18,6 @@ class Browser {
       browser: {
         width: 330,
         height: 700,
-        headless: false,
         timeout: 120000,
         ignoreHTTPSErrors: true,
         args: [
@@ -46,13 +46,14 @@ class Browser {
       },
     };
     this.business = null;
+    this.isBusySend = false;
   }
 
   launchBrowser = async () => {
     try {
       this.browser = await puppeteer.launch(this.config.browser);
       const page = await this.browser.newPage();
-      this.page = await this.setPageEvent(page);
+      this.page = await this.setHandlingPageEvent(page);
       await installMouseHelper(this.page);
       return true;
     } catch (e) {
@@ -61,18 +62,25 @@ class Browser {
     }
   };
 
-  setPageEvent = async (page) => {
+  setHandlingPageEvent = async (page) => {
     // Emitted when the DOM is parsed and ready (without waiting for resources)
     page.once("domcontentloaded", () => {});
 
     // Emitted when the page is fully loaded
-    page.once("load", () => {});
+    page.once("load", () => {
+      console.log("fully loaded");
+    });
 
     // Emitted when the page attaches a frame
-    page.on("frameattached", () => {});
+    page.on("frameattached", (frame) => {
+      console.log(frame.url());
+    });
 
     // Emitted when a frame within the page is navigated to a new URL
-    page.on("framenavigated", () => {});
+    page.on("framenavigated", async (frame) => {
+      // console.dir(frame);
+      // await page.goBack();
+    });
 
     // Emitted when a script within the page uses `console.timeStamp`
     page.on("metrics", (data) => {});
@@ -90,16 +98,22 @@ class Browser {
     page.on("dialog", async (dialog) => {});
 
     // Emitted when a new page, that belongs to the browser context, is opened
-    page.on("popup", () => {});
+    page.on("popup", () => {
+      console.log("popup");
+    });
 
     // Emitted when the page produces a request
-    page.on("request", (request) => {});
+    page.on("request", (request) => {
+      // console.dir(request);
+    });
 
     // Emitted when a request, which is produced by the page, fails
     page.on("requestfailed", (request) => {});
 
     // Emitted when a request, which is produced by the page, finishes successfully
-    page.on("requestfinished", (request) => {});
+    page.on("requestfinished", (request) => {
+      // console.log("request_finish");
+    });
 
     // Emitted when a response is received
     page.on("response", (response) => {});
@@ -115,6 +129,22 @@ class Browser {
 
     // Emitted after the page is closed
     page.once("close", () => {});
+    await page.exposeFunction("puppeteerLogMutation", () => {
+      console.log("Mutation Detected: A child node has been added or removed.");
+    });
+    await page.exposeFunction("onCustomEvent", (text) => console.log(text));
+
+    await page.evaluate(() => {
+      const target = document.querySelector("body");
+      const observer = new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+          if (mutation.type === "childList") {
+            puppeteerLogMutation();
+          }
+        }
+      });
+      observer.observe(target, { childList: true });
+    });
     return page;
   };
 
@@ -139,7 +169,7 @@ class Browser {
       }
 
       if (result) {
-        // await this.setViewport(viewport.width, viewport.height);
+        await this.setViewport(viewport.width, viewport.height);
         this.sendScreenshot();
         this.sendMessage("send-resize", {});
       }
@@ -147,7 +177,7 @@ class Browser {
 
     this.socket.on("mouse-move", async (data) => {
       this.mouseMove(data.point.x, data.point.y);
-      await this.sendScreenshot();
+      await this.sendScreenshot(600);
     });
 
     this.socket.on("mouse-click", async (data) => {
@@ -181,7 +211,7 @@ class Browser {
 
     this.socket.on("set-viewport", async (data) => {
       try {
-        // await this.setViewport(data.width, data.height);
+        await this.setViewport(data.width, data.height);
         await this.sendScreenshot();
       } catch (error) {}
     });
@@ -198,12 +228,14 @@ class Browser {
 
   close() {}
 
-  sendScreenshot = async (delay = 300) => {
+  sendScreenshot = async (delay = 100) => {
     try {
-      if (!this._isEmpty(this.page)) {
+      if (!this._isEmpty(this.page) && !this.isBusySend) {
         let img = await this.screenshot();
-        // await sleep(delay);
+        this.isBusySend = true;
+        await sleep(delay);
         this.sendMessage("send-screenshot", { screen: img });
+        this.isBusySend = false;
       }
     } catch (error) {}
   };

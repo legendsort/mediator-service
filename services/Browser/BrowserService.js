@@ -8,7 +8,6 @@ class BrowserService {
   }
 
   makeBrowser = (id) => {
-    console.log("--------------------------------->", this.existBrowser(id));
     if (this.existBrowser(id)) {
       return this.browser[id];
     } else {
