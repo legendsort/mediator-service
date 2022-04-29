@@ -1,4 +1,6 @@
 /** @format */
+var configModel = require("../../models/config.model");
+
 const Browser = require("./Browser");
 class BrowserService {
   constructor() {
@@ -6,7 +8,8 @@ class BrowserService {
   }
 
   makeBrowser = (id) => {
-    if (!this.existBrowser(id)) {
+    console.log("--------------------------------->", this.existBrowser(id));
+    if (this.existBrowser(id)) {
       return this.browser[id];
     } else {
       this.browser[id] = new Browser(id);
@@ -14,8 +17,12 @@ class BrowserService {
     }
   };
 
+  removeBrowser = (id) => {
+    delete this.browser[id];
+  };
+
   existBrowser(id) {
-    if (typeof this.browser[id] === undefined) {
+    if (this.browser[id] === undefined) {
       return false;
     } else {
       return true;

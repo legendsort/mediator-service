@@ -11,14 +11,15 @@ module.exports = {
    */
   browser: async (req, res) => {
     try {
-      user_id = req.user.user_id;
+      let identifier = req.user.identifier;
       let browser_srv = req.app.get("browser-service");
-      let response_code = browser_srv.makeBrowser(user_id);
+      let response_code = browser_srv.makeBrowser(identifier);
       return res.json({
-        response_code: response_code,
+        response_code: response_code ? true : false,
         message: "Sccuessfully",
       });
     } catch (error) {
+      console.log(error);
       return res.json({
         response_code: false,
         message: "Server has error",
