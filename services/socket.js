@@ -22,7 +22,6 @@ io.on("connection", (socket) => {
       browser.setSocket(socket);
       browser.sendMessage("socket-connection", { connection: true });
     } else {
-      socket.emit("let-open-browser", { id: user.identifier });
     }
   } catch (error) {
     console.error("socket connecting error", error);

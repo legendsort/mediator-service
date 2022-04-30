@@ -149,6 +149,10 @@ class Browser {
   };
 
   setSocket(socket) {
+    if (this.socket) {
+      this.socket.disconnect();
+    }
+    console.log(typeof this.socket);
     this.socket = socket;
     this.setSocketLogic();
     return this.socket;
@@ -162,10 +166,12 @@ class Browser {
     this.socket.on("start-page", async (data) => {
       const { action, viewport } = data;
       let [result, message] = [true, "Loaded!"];
-      if (this._isEmpty && this.business != action) {
+      if (this._isEmpty) {
         await this.launchBrowser();
+        if (this.business != action) {
+          [result, message] = await this.openUrl(this.config[action].url);
+        }
         this.business = action;
-        [result, message] = await this.openUrl(this.config[action].url);
       }
 
       if (result) {
@@ -177,7 +183,7 @@ class Browser {
 
     this.socket.on("mouse-move", async (data) => {
       this.mouseMove(data.point.x, data.point.y);
-      await this.sendScreenshot(600);
+      await this.sendScreenshot(5000);
     });
 
     this.socket.on("mouse-click", async (data) => {
@@ -231,10 +237,11 @@ class Browser {
   sendScreenshot = async (delay = 100) => {
     try {
       if (!this._isEmpty(this.page) && !this.isBusySend) {
+        console.log("-----------send screenshot---------------->");
         let img = await this.screenshot();
         this.isBusySend = true;
-        await sleep(delay);
         this.sendMessage("send-screenshot", { screen: img });
+        await sleep(delay);
         this.isBusySend = false;
       }
     } catch (error) {}

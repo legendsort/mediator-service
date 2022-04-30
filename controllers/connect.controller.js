@@ -16,7 +16,7 @@ module.exports = {
       let response_code = browser_srv.makeBrowser(identifier);
       return res.json({
         response_code: response_code ? true : false,
-        message: "Sccuessfully",
+        message: response_code ? "Sccuessfully" : "Failed create browser",
       });
     } catch (error) {
       console.log(error);
