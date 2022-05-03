@@ -16,6 +16,7 @@ io.use(
 io.on("connection", (socket) => {
   try {
     let browser_srv = web_app.get("browser-service");
+
     let user = socket.decoded_token;
     let browser = browser_srv.getBrowser(user.identifier);
     if (browser) {

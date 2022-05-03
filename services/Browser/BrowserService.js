@@ -1,6 +1,4 @@
 /** @format */
-var configModel = require("../../models/config.model");
-
 const Browser = require("./Browser");
 class BrowserService {
   constructor() {
