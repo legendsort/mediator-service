@@ -1,9 +1,9 @@
 /** @format */
 const fs = require("fs");
 /**
- * cloudInfoController.js
+ * connectController.js
  *
- * @description :: Server-side logic for managing cloudInfos.
+ * @description :: Server-side logic for managing connect.
  */
 module.exports = {
   /**
