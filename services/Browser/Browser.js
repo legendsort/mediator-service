@@ -58,7 +58,12 @@ class Browser {
       this.browser = await puppeteer.launch(this.config.browser);
       const page = await this.browser.newPage();
       this.page = await this.setHandlingPageEvent(page);
-      this.BrowserActions = new BrowserActions(page, this.socket, this.config);
+      this.BrowserActions = new BrowserActions(
+        page,
+        this.socket,
+        this.config,
+        this.browser,
+      );
       await installMouseHelper(this.page);
       return true;
     } catch (e) {
@@ -172,6 +177,82 @@ class Browser {
         await this.sendScreenshot();
       } catch (error) {}
     });
+
+    this.socket.on("copy", async (data) => {
+      try {
+        const res = await this.BrowserActions.copy(data);
+        await this.sendMessage("message", {
+          response_code: res[0],
+          message: res[1],
+        });
+        if (res[0])
+          await this.sendMessage("copy", {
+            response_code: true,
+            message: "success",
+            data: res[2],
+          });
+        await this.sendScreenshot();
+      } catch (error) {
+        console.log(error);
+      }
+    });
+
+    this.socket.on("paste", async (data) => {
+      try {
+        const res = await this.BrowserActions.paste(data);
+        await this.sendMessage("message", {
+          response_code: res[0],
+          message: res[1],
+        });
+
+        await this.sendScreenshot();
+      } catch (error) {
+        console.log(error);
+      }
+    });
+
+    this.socket.on("refresh", async () => {
+      try {
+        const res = await this.BrowserActions.refresh();
+        await this.sendMessage("message", {
+          response_code: res[0],
+          message: res[1],
+        });
+
+        await this.sendScreenshot();
+      } catch (error) {
+        console.log(error);
+      }
+    });
+
+    this.socket.on("back", async () => {
+      try {
+        const res = await this.BrowserActions.back();
+        await this.sendMessage("message", {
+          response_code: res[0],
+          message: res[1],
+        });
+
+        await this.sendScreenshot();
+      } catch (error) {
+        console.log(error);
+      }
+    });
+
+    this.socket.on("forward", async () => {
+      try {
+        const res = await this.BrowserActions.forward();
+        await this.sendMessage("message", {
+          response_code: res[0],
+          message: res[1],
+        });
+
+        await this.sendScreenshot();
+      } catch (error) {
+        console.log(error);
+      }
+    });
+
     return this.socket;
   };
   sendScreenshot = async (delay = 500) => {
