@@ -1,15 +1,17 @@
 /** @format */
 
-const { sleep } = require("../../helper/installMouseHelper");
-
+const sleep = require("await-sleep");
 class BrowserActions {
-  constructor(page, socket, config, browser) {
+  constructor(page, socket, config, browser, puppeteer) {
     this.page = page;
     this.socket = socket;
     this.config = config;
     this.browser = browser;
+    this.puppeteer = puppeteer;
   }
-
+  sendMessage = (event, message) => {
+    this.socket.emit(event, message);
+  };
   async visit(action) {
     const url = action.url;
     if (this._isEmpty(this.page)) {
@@ -32,7 +34,7 @@ class BrowserActions {
         } else if (str_error.includes("ERR_CONNECTION_TIMED_OUT")) {
           return [false, "ERR_CONNECTION_TIMED_OUT"];
         } else {
-          return [false, "UNKNOWN_ERROR"];
+          return [false, error];
         }
       }
     }
@@ -97,8 +99,8 @@ class BrowserActions {
   };
 
   async mouseDBclick(x, y) {
-    if (!this._isEmpty(this.page)) {
-      return await this.page.mouse.click(x, y);
+    if (!this._isEmpty(this.puppeteer)) {
+      return await this.puppeteer.mouse_dblclick(x, y);
     }
     return false;
   }
@@ -169,7 +171,6 @@ class BrowserActions {
       await this.page.keyboard.down("Control");
       await this.page.keyboard.press("KeyA");
       await this.page.keyboard.up("Control");
-      //        console.log("selectall   called !!!");
     } else {
       console.log("selectall   failed !");
     }
@@ -184,6 +185,36 @@ class BrowserActions {
       console.log("deleteword   failed !");
     }
   }
+
+  getData = async (action) => {
+    const selector = action.selector;
+    console.log({ selector });
+    try {
+      const data = await this.page.$$eval(selector, (data) => {
+        data.map((x) => x.innerHTML), console.log(data);
+        return data;
+      });
+      return [true, data];
+    } catch (e) {
+      console.log(e);
+      return [false, "error on getting data"];
+    }
+  };
+
+  getElement = async (action) => {
+    const selector = action.selector;
+    try {
+      const nodes = await this.page.$$eval(selector, (el) =>
+        el.map((x) => {
+          return x;
+        }),
+      );
+      return [true, nodes];
+    } catch (e) {
+      console.log(e);
+      return [false, "error on getting data"];
+    }
+  };
 
   input = async (action) => {
     let [selector, value] = [action.selector, action.value];
@@ -318,23 +349,23 @@ class BrowserActions {
         },
       },
     ];
-    // scripts = [
-    //   {
-    //     type: "visit",
-    //     action: {
-    //       url: "http://gitlab.local.com/genus/mediatory-frontend",
-    //     },
-    //   },
-    // ];
+    scripts = [
+      {
+        type: "visit",
+        action: {
+          url: "http://gitlab.local.com/users/sign_in",
+        },
+      },
+    ];
     let response_code = true,
       message = "Success";
-    console.log(scripts.length);
     for (const script of scripts) {
       let fn = script.type;
       console.log(script);
       if (fn in this) {
         try {
           const [res, msg] = await this[fn](script.action);
+          console.log({ res }, { msg });
           if (res === false) {
             response_code = false;
             message = msg;
@@ -351,7 +382,9 @@ class BrowserActions {
         break;
       }
     }
-    console.error(response_code, message);
+
+    console.error("execute script", response_code, message);
+
     return [response_code, message];
   };
 }

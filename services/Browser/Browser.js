@@ -57,30 +57,31 @@ class Browser {
     try {
       this.browser = await puppeteer.launch(this.config.browser);
       const page = await this.browser.newPage();
-      this.page = await this.setHandlingPageEvent(page);
+      this.page = await this.setHandlingPageEvent(page, this.socket);
+
       this.BrowserActions = new BrowserActions(
         page,
         this.socket,
         this.config,
         this.browser,
+        puppeteer,
       );
       await installMouseHelper(this.page);
       return true;
     } catch (e) {
-      console.log(e);
+      console.log("Lanuch", e);
       return false;
     }
   };
 
-  setHandlingPageEvent = async (page) => {
-    return pageEvent(page);
+  setHandlingPageEvent = async (page, socket) => {
+    return pageEvent(page, socket);
   };
 
   setSocket(socket) {
     if (this.socket) {
       this.socket.disconnect();
     }
-    console.log(typeof this.socket);
     this.socket = socket;
     this.setSocketLogic();
     return this.socket;
@@ -102,7 +103,7 @@ class Browser {
       let [result, message] = [true, "Loaded!"];
       if (this._isEmpty) {
         await this.launchBrowser();
-        if (this.business != action) {
+        if (true || this.business != action) {
           [result, message] = await this.BrowserActions.execute(this.scripts);
           console.log(result, message);
         }
@@ -131,7 +132,6 @@ class Browser {
     this.socket.on("mouse-click", async (data) => {
       try {
         await this.BrowserActions.mouseClick(data.point.x, data.point.y);
-        console.log(data);
         await this.sendScreenshot();
       } catch (error) {}
     });
@@ -271,8 +271,6 @@ class Browser {
     } catch (error) {}
   };
   sendMessage = (event, message) => {
-    // console.log({ event }, { message });
-
     this.socket.emit(event, message);
   };
   close() {}

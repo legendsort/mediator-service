@@ -8,3 +8,5 @@ class URLPolicy {
     return this.allowUrlList.includes(url);
   };
 }
+
+module.exports = URLPolicy;
