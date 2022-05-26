@@ -1,5 +1,6 @@
 /** @format */
-const { ConsoleMessage, PageEmittedEvents } = require("puppeteer");
+const SocketHelper = require("../Socket/SocketHelper");
+
 const puppeteer = require("puppeteer-extra");
 const {
   installMouseHelper,
@@ -51,6 +52,7 @@ class Browser {
     this.scripts = [];
     this.business = null;
     this.busy = false;
+    this.socketHelper = {};
   }
 
   launchBrowser = async () => {
@@ -83,6 +85,7 @@ class Browser {
       this.socket.disconnect();
     }
     this.socket = socket;
+    this.socketHelper = new SocketHelper(socket);
     this.setSocketLogic();
     return this.socket;
   }
@@ -114,13 +117,10 @@ class Browser {
         console.log(viewport.width, viewport.height);
         await this.BrowserActions.setViewport(viewport.width, viewport.height);
         this.sendScreenshot();
-        this.sendMessage("send-resize", {});
+        this.socketHelper.sendMessage("send-resize", {});
       } else {
         console.log("========>", message);
-        this.sendMessage("message", {
-          response_code: result,
-          message: message,
-        });
+        this.socketHelper.sendFailureMessage(message);
       }
     });
 
@@ -181,12 +181,13 @@ class Browser {
     this.socket.on("copy", async (data) => {
       try {
         const res = await this.BrowserActions.copy(data);
-        await this.sendMessage("message", {
+
+        await this.socketHelper.sendMessage("message", {
           response_code: res[0],
           message: res[1],
         });
         if (res[0])
-          await this.sendMessage("copy", {
+          await this.socketHelper.sendMessage("copy", {
             response_code: true,
             message: "success",
             data: res[2],
@@ -200,7 +201,7 @@ class Browser {
     this.socket.on("paste", async (data) => {
       try {
         const res = await this.BrowserActions.paste(data);
-        await this.sendMessage("message", {
+        await this.socketHelper.sendMessage("message", {
           response_code: res[0],
           message: res[1],
         });
@@ -214,7 +215,7 @@ class Browser {
     this.socket.on("refresh", async () => {
       try {
         const res = await this.BrowserActions.refresh();
-        await this.sendMessage("message", {
+        await this.socketHelper.sendMessage("message", {
           response_code: res[0],
           message: res[1],
         });
@@ -228,7 +229,7 @@ class Browser {
     this.socket.on("back", async () => {
       try {
         const res = await this.BrowserActions.back();
-        await this.sendMessage("message", {
+        await this.socketHelper.sendMessage("message", {
           response_code: res[0],
           message: res[1],
         });
@@ -242,7 +243,7 @@ class Browser {
     this.socket.on("forward", async () => {
       try {
         const res = await this.BrowserActions.forward();
-        await this.sendMessage("message", {
+        await this.socketHelper.sendMessage("message", {
           response_code: res[0],
           message: res[1],
         });
@@ -261,8 +262,7 @@ class Browser {
         console.log("-----------send screenshot---------------->");
         let img = await this.BrowserActions.screenshot();
         this.busy = true;
-
-        this.sendMessage("send-screenshot", { screen: img });
+        this.socketHelper.sendMessage("send-screenshot", { screen: img });
 
         await sleep(delay);
 
@@ -271,6 +271,7 @@ class Browser {
     } catch (error) {}
   };
   sendMessage = (event, message) => {
+    console.log("Call me ?????????????????????");
     this.socket.emit(event, message);
   };
   close() {}

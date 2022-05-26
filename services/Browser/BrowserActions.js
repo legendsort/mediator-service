@@ -9,9 +9,7 @@ class BrowserActions {
     this.browser = browser;
     this.puppeteer = puppeteer;
   }
-  sendMessage = (event, message) => {
-    this.socket.emit(event, message);
-  };
+
   async visit(action) {
     const url = action.url;
     if (this._isEmpty(this.page)) {

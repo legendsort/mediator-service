@@ -3,6 +3,7 @@
 const io = require("socket.io")();
 const socketioJwt = require("socketio-jwt");
 const web_app = require("../app");
+const SocketHelper = require("./Socket/SocketHelper");
 
 const socket = {
   io: io,
@@ -21,7 +22,8 @@ io.on("connection", (socket) => {
     let browser = browser_srv.getBrowser(user.identifier);
     if (browser) {
       browser.setSocket(socket);
-      browser.sendMessage("socket-connection", { connection: true });
+      const socketHelper = new SocketHelper(socket);
+      socketHelper.sendMessage("socket-connection", { connection: true });
     } else {
     }
   } catch (error) {

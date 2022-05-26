@@ -7,7 +7,7 @@ class SocketHelper {
     this.socket = socket;
   }
   sendMessage = (event, message) => {
-    console.log({ event }, { message });
+    if (event !== "send-screenshot") console.log({ event }, { message });
     this.socket.emit(event, message);
   };
 
