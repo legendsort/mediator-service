@@ -1,97 +1,19 @@
 /** @format */
 const SocketHelper = require("../Socket/SocketHelper");
+const URLPolicy = require("../Security/URLPolicy");
 
 const pageEvent = async (page, socket) => {
   const socketHelper = new SocketHelper(socket);
+  const urlPolicy = new URLPolicy(page, socket);
   page.setRequestInterception(true);
 
-  const validateURL = (url, aurls = [], durls = []) => {
-    let res = true;
-    aurls.forEach((aurl) => {
-      if (url.indexOf(aurl) === 0) res = true;
-    });
-    durls.forEach((durl) => {
-      if (url.indexOf(durl) === 0) res = false;
-    });
-    return res;
-  };
   const handleRequest = (request) => {
-    let aurls = [];
-    let durls = [
-      "http://gitlab.local.com/help",
-      "http://gitlab.local.com/explore",
-    ];
-
     const url = request.url();
-
-    if (validateURL(url, aurls, durls) == true) {
+    if (urlPolicy.validateURL(url) == true) {
       request.continue();
     } else {
       console.log("aborted");
       request.abort();
-    }
-  };
-
-  const filterATag = async () => {
-    if (page === undefined) {
-      return;
-    }
-
-    const config = {
-      allow: [],
-      deny: [],
-    };
-    const url = page.url();
-    let aurls = config.allow;
-    let durls = config.deny;
-    console.log({ url });
-
-    const nodes = await page.$$eval(
-      "a",
-      (data, url) =>
-        data.map((el) => {
-          console.log(validateURL);
-          if (el.target === "") {
-          } else if (el.target === "_self") {
-          } else {
-            el.target = "_self";
-          }
-          console.log("===+++++++++");
-          if (el.href.indexOf(url) === 0) {
-          } else if (
-            el.href.indexOf("http:") != 0 &&
-            el.href.indexOf("https:") != 0
-          ) {
-          } else if (el.href.indexOf("javascript:") === 0) {
-          } else {
-            console.log("+++++++++++", el.href);
-            const response = validateURL(el.href);
-            // const response = false;
-            if (response === false) {
-              if (el.href != "") {
-                el.href = "";
-              }
-              if (el.onclick != null) {
-                el.onclick = null;
-              }
-            }
-          }
-          return el;
-        }),
-      url,
-    );
-    console.log("END FILTER");
-  };
-
-  const filterAll = async () => {
-    console.log("-----------------filterAll-------------------");
-    try {
-      await filterATag();
-      console.log("-----------------filterAll-------------------end");
-      return;
-    } catch (e) {
-      socketHelper.sendFailureMessage("Filter failed");
-      console.log(e);
     }
   };
 
@@ -114,7 +36,7 @@ const pageEvent = async (page, socket) => {
   // Emitted when a frame within the page is navigated to a new URL
   page.on("framenavigated", async (frame) => {
     console.log("==========>frame navigated ", frame.url());
-    await filterAll();
+    await urlPolicy.filterAll();
   });
 
   // Emitted when a script within the page uses `console.timeStamp`
@@ -154,7 +76,7 @@ const pageEvent = async (page, socket) => {
   // Emitted when a request, which is produced by the page, finishes successfully
   page.on("requestfinished", async (request) => {
     console.log("====> request_finish");
-    await filterAll();
+    await urlPolicy.filterAll();
   });
 
   // Emitted when a response is received
@@ -176,7 +98,7 @@ const pageEvent = async (page, socket) => {
   // Emitted after the page is closed
   page.once("close", () => {});
   await page.exposeFunction("onCustomEvent", (text) => console.log(text));
-  await page.exposeFunction("validateURL", validateURL);
+  await page.exposeFunction("validateURL", urlPolicy.validateURL);
 
   return page;
 };
