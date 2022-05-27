@@ -1,5 +1,6 @@
 /** @format */
-const { ConsoleMessage, PageEmittedEvents } = require("puppeteer");
+const SocketHelper = require("../Socket/SocketHelper");
+
 const puppeteer = require("puppeteer-extra");
 const {
   installMouseHelper,
@@ -51,32 +52,40 @@ class Browser {
     this.scripts = [];
     this.business = null;
     this.busy = false;
+    this.socketHelper = {};
   }
 
   launchBrowser = async () => {
     try {
       this.browser = await puppeteer.launch(this.config.browser);
       const page = await this.browser.newPage();
-      this.page = await this.setHandlingPageEvent(page);
-      this.BrowserActions = new BrowserActions(page, this.socket, this.config);
+      this.page = await this.setHandlingPageEvent(page, this.socket);
+
+      this.BrowserActions = new BrowserActions(
+        page,
+        this.socket,
+        this.config,
+        this.browser,
+        puppeteer,
+      );
       await installMouseHelper(this.page);
       return true;
     } catch (e) {
-      console.log(e);
+      console.log("Lanuch", e);
       return false;
     }
   };
 
-  setHandlingPageEvent = async (page) => {
-    return pageEvent(page);
+  setHandlingPageEvent = async (page, socket) => {
+    return pageEvent(page, socket);
   };
 
   setSocket(socket) {
     if (this.socket) {
       this.socket.disconnect();
     }
-    console.log(typeof this.socket);
     this.socket = socket;
+    this.socketHelper = new SocketHelper(socket);
     this.setSocketLogic();
     return this.socket;
   }
@@ -97,7 +106,7 @@ class Browser {
       let [result, message] = [true, "Loaded!"];
       if (this._isEmpty) {
         await this.launchBrowser();
-        if (this.business != action) {
+        if (true || this.business != action) {
           [result, message] = await this.BrowserActions.execute(this.scripts);
           console.log(result, message);
         }
@@ -108,13 +117,10 @@ class Browser {
         console.log(viewport.width, viewport.height);
         await this.BrowserActions.setViewport(viewport.width, viewport.height);
         this.sendScreenshot();
-        this.sendMessage("send-resize", {});
+        this.socketHelper.sendMessage("send-resize", {});
       } else {
         console.log("========>", message);
-        this.sendMessage("message", {
-          response_code: result,
-          message: message,
-        });
+        this.socketHelper.sendFailureMessage(message);
       }
     });
 
@@ -126,7 +132,6 @@ class Browser {
     this.socket.on("mouse-click", async (data) => {
       try {
         await this.BrowserActions.mouseClick(data.point.x, data.point.y);
-        console.log(data);
         await this.sendScreenshot();
       } catch (error) {}
     });
@@ -172,6 +177,83 @@ class Browser {
         await this.sendScreenshot();
       } catch (error) {}
     });
+
+    this.socket.on("copy", async (data) => {
+      try {
+        const res = await this.BrowserActions.copy(data);
+
+        await this.socketHelper.sendMessage("message", {
+          response_code: res[0],
+          message: res[1],
+        });
+        if (res[0])
+          await this.socketHelper.sendMessage("copy", {
+            response_code: true,
+            message: "success",
+            data: res[2],
+          });
+        await this.sendScreenshot();
+      } catch (error) {
+        console.log(error);
+      }
+    });
+
+    this.socket.on("paste", async (data) => {
+      try {
+        const res = await this.BrowserActions.paste(data);
+        await this.socketHelper.sendMessage("message", {
+          response_code: res[0],
+          message: res[1],
+        });
+
+        await this.sendScreenshot();
+      } catch (error) {
+        console.log(error);
+      }
+    });
+
+    this.socket.on("refresh", async () => {
+      try {
+        const res = await this.BrowserActions.refresh();
+        await this.socketHelper.sendMessage("message", {
+          response_code: res[0],
+          message: res[1],
+        });
+
+        await this.sendScreenshot();
+      } catch (error) {
+        console.log(error);
+      }
+    });
+
+    this.socket.on("back", async () => {
+      try {
+        const res = await this.BrowserActions.back();
+        await this.socketHelper.sendMessage("message", {
+          response_code: res[0],
+          message: res[1],
+        });
+
+        await this.sendScreenshot();
+      } catch (error) {
+        console.log(error);
+      }
+    });
+
+    this.socket.on("forward", async () => {
+      try {
+        const res = await this.BrowserActions.forward();
+        await this.socketHelper.sendMessage("message", {
+          response_code: res[0],
+          message: res[1],
+        });
+
+        await this.sendScreenshot();
+      } catch (error) {
+        console.log(error);
+      }
+    });
+
     return this.socket;
   };
   sendScreenshot = async (delay = 500) => {
@@ -180,8 +262,7 @@ class Browser {
         console.log("-----------send screenshot---------------->");
         let img = await this.BrowserActions.screenshot();
         this.busy = true;
-
-        this.sendMessage("send-screenshot", { screen: img });
+        this.socketHelper.sendMessage("send-screenshot", { screen: img });
 
         await sleep(delay);
 
@@ -190,8 +271,7 @@ class Browser {
     } catch (error) {}
   };
   sendMessage = (event, message) => {
-    // console.log({ event }, { message });
-
+    console.log("Call me ?????????????????????");
     this.socket.emit(event, message);
   };
   close() {}

@@ -1,30 +1,51 @@
 /** @format */
+const SocketHelper = require("../Socket/SocketHelper");
+const URLPolicy = require("../Security/URLPolicy");
 
-const pageEvent = async (page) => {
+const pageEvent = async (page, socket) => {
+  const socketHelper = new SocketHelper(socket);
+  const urlPolicy = new URLPolicy(page, socket);
+  page.setRequestInterception(true);
+
+  const handleRequest = (request) => {
+    const url = request.url();
+    if (urlPolicy.validateURL(url) == true) {
+      request.continue();
+    } else {
+      console.log("aborted");
+      request.abort();
+    }
+  };
+
   // Emitted when the DOM is parsed and ready (without waiting for resources)
-  page.once("domcontentloaded", () => {});
+  page.once("domcontentloaded", () => {
+    console.log("loaded");
+  });
 
   // Emitted when the page is fully loaded
-  page.once("load", () => {
+  page.once("load", async () => {
     console.log("fully loaded");
+    await filterAll();
   });
 
   // Emitted when the page attaches a frame
   page.on("frameattached", (frame) => {
-    console.log(frame.url());
+    console.log("frame detached");
   });
 
   // Emitted when a frame within the page is navigated to a new URL
   page.on("framenavigated", async (frame) => {
-    // console.dir(frame);
-    // await page.goBack();
+    console.log("==========>frame navigated ", frame.url());
+    await urlPolicy.filterAll();
   });
 
   // Emitted when a script within the page uses `console.timeStamp`
   page.on("metrics", (data) => {});
 
   // Emitted when a script within the page uses `console`
-  page.on("console", (message) => {});
+  page.on("console", (message) => {
+    console.log("In page for console===>", message.text());
+  });
 
   // Emitted when the page emits an error event (for example, the page crashes)
   page.on("error", (error) => {});
@@ -42,19 +63,26 @@ const pageEvent = async (page) => {
 
   // Emitted when the page produces a request
   page.on("request", (request) => {
-    // console.dir(request);
+    console.log("====> request", request.url());
+    handleRequest(request);
   });
 
   // Emitted when a request, which is produced by the page, fails
-  page.on("requestfailed", (request) => {});
+  page.on("requestfailed", (request) => {
+    console.log("====> request failed");
+    socketHelper.sendFailureMessage("Request failed");
+  });
 
   // Emitted when a request, which is produced by the page, finishes successfully
-  page.on("requestfinished", (request) => {
-    // console.log("request_finish");
+  page.on("requestfinished", async (request) => {
+    console.log("====> request_finish");
+    await urlPolicy.filterAll();
   });
 
   // Emitted when a response is received
-  page.on("response", (response) => {});
+  page.on("====> response", (response) => {
+    console.log("response");
+  });
 
   // Emitted when the page creates a dedicated WebWorker
   page.on("workercreated", (worker) => {});
@@ -63,26 +91,15 @@ const pageEvent = async (page) => {
   page.on("workerdestroyed", (worker) => {});
 
   // Emitted when the page detaches a frame
-  page.on("framedetached", () => {});
+  page.on("framedetached", () => {
+    console.log("frame detached");
+  });
 
   // Emitted after the page is closed
   page.once("close", () => {});
-  await page.exposeFunction("puppeteerLogMutation", () => {
-    console.log("Mutation Detected: A child node has been added or removed.");
-  });
   await page.exposeFunction("onCustomEvent", (text) => console.log(text));
+  await page.exposeFunction("validateURL", urlPolicy.validateURL);
 
-  await page.evaluate(() => {
-    const target = document.querySelector("body");
-    const observer = new MutationObserver((mutations) => {
-      for (const mutation of mutations) {
-        if (mutation.type === "childList") {
-          puppeteerLogMutation();
-        }
-      }
-    });
-    observer.observe(target, { childList: true });
-  });
   return page;
 };
 

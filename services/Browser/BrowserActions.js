@@ -1,12 +1,13 @@
 /** @format */
 
-const { sleep } = require("../../helper/installMouseHelper");
-
+const sleep = require("await-sleep");
 class BrowserActions {
-  constructor(page, socket, config) {
+  constructor(page, socket, config, browser, puppeteer) {
     this.page = page;
     this.socket = socket;
     this.config = config;
+    this.browser = browser;
+    this.puppeteer = puppeteer;
   }
 
   async visit(action) {
@@ -31,7 +32,7 @@ class BrowserActions {
         } else if (str_error.includes("ERR_CONNECTION_TIMED_OUT")) {
           return [false, "ERR_CONNECTION_TIMED_OUT"];
         } else {
-          return [false, "UNKNOWN_ERROR"];
+          return [false, error];
         }
       }
     }
@@ -96,8 +97,8 @@ class BrowserActions {
   };
 
   async mouseDBclick(x, y) {
-    if (!this._isEmpty(this.page)) {
-      return await this.page.mouse.click(x, y);
+    if (!this._isEmpty(this.puppeteer)) {
+      return await this.puppeteer.mouse_dblclick(x, y);
     }
     return false;
   }
@@ -163,20 +164,11 @@ class BrowserActions {
     }
   }
 
-  async paste(data) {
-    if (!this._isEmpty(this.page)) {
-      await this.page.keyboard.type(data);
-    } else {
-      console.log("paste   failed !");
-    }
-  }
-
   async selectAll() {
     if (!this._isEmpty(this.page)) {
       await this.page.keyboard.down("Control");
       await this.page.keyboard.press("KeyA");
       await this.page.keyboard.up("Control");
-      //        console.log("selectall   called !!!");
     } else {
       console.log("selectall   failed !");
     }
@@ -191,6 +183,36 @@ class BrowserActions {
       console.log("deleteword   failed !");
     }
   }
+
+  getData = async (action) => {
+    const selector = action.selector;
+    console.log({ selector });
+    try {
+      const data = await this.page.$$eval(selector, (data) => {
+        data.map((x) => x.innerHTML), console.log(data);
+        return data;
+      });
+      return [true, data];
+    } catch (e) {
+      console.log(e);
+      return [false, "error on getting data"];
+    }
+  };
+
+  getElement = async (action) => {
+    const selector = action.selector;
+    try {
+      const nodes = await this.page.$$eval(selector, (el) =>
+        el.map((x) => {
+          return x;
+        }),
+      );
+      return [true, nodes];
+    } catch (e) {
+      console.log(e);
+      return [false, "error on getting data"];
+    }
+  };
 
   input = async (action) => {
     let [selector, value] = [action.selector, action.value];
@@ -212,16 +234,86 @@ class BrowserActions {
   wait = async (action) => {
     try {
       const delay = action.delay;
-      console.log(delay);
-
       await sleep(delay);
     } catch (e) {
       return [false, "Error while sleeping"];
     }
-    return [true, "success"];
+    return [true, "Success"];
+  };
+
+  copy = async (action) => {
+    try {
+      const page = this.page;
+
+      const context = await this.browser.defaultBrowserContext();
+      await context.overridePermissions(this.getUrl(), ["clipboard-read"]);
+
+      await page.bringToFront();
+      const clipText = await page.evaluate(() => {
+        document.execCommand("copy");
+        return navigator.clipboard.readText();
+      });
+
+      console.log({ clipText });
+      await context.clearPermissionOverrides();
+      return [true, "Copy succeed", clipText];
+    } catch (e) {
+      console.log(e);
+      return [false, "Copy error"];
+    }
+  };
+
+  paste = async (data) => {
+    try {
+      const page = this.page;
+      const context = await this.browser.defaultBrowserContext();
+      await context.overridePermissions(this.getUrl(), ["clipboard-read"]);
+
+      await page.bringToFront();
+      const clipText = await page.evaluate(() => {
+        return navigator.clipboard.readText();
+      });
+      await page.evaluate((clipText) => {
+        document.execCommand("insertText", false, clipText);
+      }, clipText);
+      return [true, "Paste succeed", clipText];
+    } catch (e) {
+      console.log(e);
+      return [false, "Paste error"];
+    }
+  };
+
+  refresh = async () => {
+    try {
+      await this.page.reload();
+      return [true, "Refresh succeed"];
+    } catch (e) {
+      console.log(e);
+      return [false, "Refresh error"];
+    }
+  };
+
+  back = async () => {
+    try {
+      await this.page.goBack();
+      return [true, "Go back succeed"];
+    } catch (e) {
+      console.log(e);
+      return [false, "Go back error"];
+    }
+  };
+
+  forward = async () => {
+    try {
+      await this.page.goForward();
+      return [true, "Go forward succeed"];
+    } catch (e) {
+      console.log(e);
+      return [false, "Go forward error"];
+    }
   };
   execute = async (scriptss) => {
-    const scripts = [
+    let scripts = [
       {
         type: "visit",
         action: {
@@ -255,15 +347,23 @@ class BrowserActions {
         },
       },
     ];
+    scripts = [
+      {
+        type: "visit",
+        action: {
+          url: "http://gitlab.local.com/users/sign_in",
+        },
+      },
+    ];
     let response_code = true,
       message = "Success";
-    console.log(scripts.length);
     for (const script of scripts) {
       let fn = script.type;
       console.log(script);
       if (fn in this) {
         try {
           const [res, msg] = await this[fn](script.action);
+          console.log({ res }, { msg });
           if (res === false) {
             response_code = false;
             message = msg;
@@ -280,7 +380,9 @@ class BrowserActions {
         break;
       }
     }
-    console.error(response_code, message);
+
+    console.error("execute script", response_code, message);
+
     return [response_code, message];
   };
 }
