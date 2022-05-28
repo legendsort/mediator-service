@@ -7,59 +7,40 @@ const {
   sleep,
 } = require("../../helper/installMouseHelper");
 
-const BrowserActions = require("./BrowserActions");
 const pageEvent = require("./PageEvent");
+const BrowserActions = require("./BrowserActions");
+const ConfigController = require("../../controllers/config.controller");
 class Browser {
   constructor(id) {
     this.id = id;
     this.socket = null;
-    this.config = {
-      madrid: { url: "http://gitlab.local.com" },
-      option: {
-        margin_w: 1,
-        margin_h: 6,
-      },
-      browser: {
-        width: 330,
-        height: 700,
-        timeout: 120000,
-        ignoreHTTPSErrors: true,
-        args: [
-          "--no-sandbox",
-          "--disable-gpu",
-          "--no-first-run",
-          "--no-zygote",
-          "--disable-setuid-sandbox",
-          "--disable-infobars",
-          "--disable-breakpad",
-          "--disable-notifications",
-          "--disable-desktop-notifications",
-          "--disable-component-update",
-          "--disable-background-downloads",
-          "--disable-add-to-shelf",
-          "--disable-datasaver-prompt",
-          "--ignore-urlfetcher-cert-requests",
-          "--ignore-certificate-errors",
-          "--disable-client-side-phishing-detection",
-          "--autoplay-policy=no-user-gesture-required",
-          "--disable-web-security",
-          "--allow-running-insecure-content",
-          "--unhandled-rejections=strict",
-          "--window-size=1920,1080",
-        ],
-      },
-    };
-    this.scripts = [];
     this.business = null;
     this.busy = false;
     this.socketHelper = {};
   }
 
+  getConfig = async (req) => {
+    const response = await ConfigController.get(req);
+    if (response.response_code === false) {
+      this.socketHelper.sendFailureMessage("Get Config Error!");
+      throw "Get config error";
+    }
+    const res = JSON.parse(response.data);
+    return res;
+  };
   launchBrowser = async () => {
     try {
+      this.config = await this.getConfig({ site: "WIPO", tag: "Browser" });
+      this.scripts = await this.getConfig({
+        site: "WIPO",
+        tag: "TestWithGitlab",
+        // tag: "LoginToWIPO"
+      });
+
       this.browser = await puppeteer.launch(this.config.browser);
       const page = await this.browser.newPage();
       this.page = await this.setHandlingPageEvent(page, this.socket);
+      this.client = this.page._client;
 
       this.BrowserActions = new BrowserActions(
         page,
@@ -87,6 +68,7 @@ class Browser {
     this.socket = socket;
     this.socketHelper = new SocketHelper(socket);
     this.setSocketLogic();
+    this.setFileUpload();
     return this.socket;
   }
 
@@ -100,27 +82,48 @@ class Browser {
       return false;
     }
   }
+
+  setFileUpload = async () => {
+    var client = this.client;
+    if (client == null) return false;
+    await client.send("Page.setInterceptFileChooserDialog", { enabled: true });
+    client.on("Page.fileChooserOpened", ({ mode, backendNodeId, frameId }) => {
+      // this.page_fileChooserOpened(mode, backendNodeId, frameId);
+      console.log("Page.filechooseOpend");
+    });
+    client.on("Page.navigatedWithinDocument", ({ frameId, url }) => {
+      console.log("page.navigatedWithinDocument");
+      // this.page_navigatedWithinDocument(frameId, url);
+    });
+  };
   setSocketLogic = async () => {
     this.socket.on("start-page", async (data) => {
-      const { action, viewport } = data;
-      let [result, message] = [true, "Loaded!"];
-      if (this._isEmpty) {
-        await this.launchBrowser();
-        if (true || this.business != action) {
-          [result, message] = await this.BrowserActions.execute(this.scripts);
-          console.log(result, message);
+      try {
+        const { action, viewport } = data;
+        let [result, message] = [true, "Loaded!"];
+        if (this._isEmpty) {
+          await this.launchBrowser();
+          if (true || this.business != action) {
+            [result, message] = await this.BrowserActions.execute(this.scripts);
+            console.log(result, message);
+          }
+          this.business = action;
         }
-        this.business = action;
-      }
 
-      if (result) {
-        console.log(viewport.width, viewport.height);
-        await this.BrowserActions.setViewport(viewport.width, viewport.height);
-        this.sendScreenshot();
-        this.socketHelper.sendMessage("send-resize", {});
-      } else {
-        console.log("========>", message);
-        this.socketHelper.sendFailureMessage(message);
+        if (result) {
+          console.log(viewport.width, viewport.height);
+          await this.BrowserActions.setViewport(
+            viewport.width,
+            viewport.height,
+          );
+          this.sendScreenshot();
+          this.socketHelper.sendMessage("send-resize", {});
+        } else {
+          this.socketHelper.sendFailureMessage(message);
+        }
+      } catch (e) {
+        console.log(e);
+        this.socketHelper.sendFailureMessage("Network Error!");
       }
     });
 
@@ -269,10 +272,6 @@ class Browser {
         this.busy = false;
       }
     } catch (error) {}
-  };
-  sendMessage = (event, message) => {
-    console.log("Call me ?????????????????????");
-    this.socket.emit(event, message);
   };
   close() {}
 }

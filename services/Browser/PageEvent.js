@@ -25,7 +25,7 @@ const pageEvent = async (page, socket) => {
   // Emitted when the page is fully loaded
   page.once("load", async () => {
     console.log("fully loaded");
-    await filterAll();
+    await urlPolicy.filterAll();
   });
 
   // Emitted when the page attaches a frame
@@ -54,8 +54,12 @@ const pageEvent = async (page, socket) => {
   page.on("pageerror", (error) => {});
 
   // Emitted when a script within the page uses `alert`, `prompt`, `confirm` or `beforeunload`
-  page.on("dialog", async (dialog) => {});
-
+  page.on("dialog", async (dialog) => {
+    console.log("dialog");
+  });
+  page.on("filedialog", (data) => {
+    console.log("file dialog");
+  });
   // Emitted when a new page, that belongs to the browser context, is opened
   page.on("popup", () => {
     console.log("popup");
@@ -76,7 +80,7 @@ const pageEvent = async (page, socket) => {
   // Emitted when a request, which is produced by the page, finishes successfully
   page.on("requestfinished", async (request) => {
     console.log("====> request_finish");
-    await urlPolicy.filterAll();
+    // await urlPolicy.filterAll();
   });
 
   // Emitted when a response is received
