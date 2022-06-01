@@ -67,7 +67,7 @@ const pageEvent = async (page, socket) => {
 
   // Emitted when the page produces a request
   page.on("request", (request) => {
-    console.log("====> request", request.url());
+    // console.log("====> request", request.url());
     handleRequest(request);
   });
 
@@ -80,7 +80,7 @@ const pageEvent = async (page, socket) => {
   // Emitted when a request, which is produced by the page, finishes successfully
   page.on("requestfinished", async (request) => {
     console.log("====> request_finish");
-    // await urlPolicy.filterAll();
+    await urlPolicy.filterAll();
   });
 
   // Emitted when a response is received
@@ -101,8 +101,31 @@ const pageEvent = async (page, socket) => {
 
   // Emitted after the page is closed
   page.once("close", () => {});
-  await page.exposeFunction("onCustomEvent", (text) => console.log(text));
+
+  await page.exposeFunction("onCustomEvent", ({ type, detail }) => {
+    console.log(`Event fired: ${type}, detail: ${detail}`);
+  });
+
+  // listen for events of type 'status' and
+  // pass 'type' and 'detail' attributes to our exposed function
+  await page.evaluateOnNewDocument(() => {
+    window.addEventListener("click", (e) => {
+      const type = e.target.getAttribute("type");
+      // for upload
+      if (type === "submit") {
+        // if(type === "file") {
+        window.sendMessage("message", {
+          response_code: true,
+          message: "Upload",
+          data: {},
+        });
+        e.preventDefault();
+      }
+    });
+  });
+
   await page.exposeFunction("validateURL", urlPolicy.validateURL);
+  await page.exposeFunction("sendMessage", socketHelper.sendMessage);
 
   return page;
 };

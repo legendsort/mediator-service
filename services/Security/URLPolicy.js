@@ -31,6 +31,7 @@ class URLPolicy {
       return;
     }
     const url = page.url();
+
     await page.$$eval(
       "a",
       (data, url) =>

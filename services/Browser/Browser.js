@@ -34,8 +34,10 @@ class Browser {
       this.scripts = await this.getConfig({
         site: "WIPO",
         tag: "TestWithGitlab",
-        // tag: "LoginToWIPO"
+        // tag: "LoginToWIPO",
+        // tag: "TestUploadWithGitlab",
       });
+      console.log(this.config, this.scripts);
 
       this.browser = await puppeteer.launch(this.config.browser);
       const page = await this.browser.newPage();
@@ -106,6 +108,15 @@ class Browser {
           if (true || this.business != action) {
             [result, message] = await this.BrowserActions.execute(this.scripts);
             console.log(result, message);
+            // const [fileChooser] = await Promise.all([
+            //   this.page.waitForFileChooser(),
+            //   this.page.click("input[type='file']"),
+            // ]);
+            // const data = await fileChooser.accept([
+            //   "E:/work_temp/20220211_integration/itums/src/assets/img/bitcoin.png",
+            // ]);
+            // console.log({ data });
+            await installMouseHelper(this.page);
           }
           this.business = action;
         }

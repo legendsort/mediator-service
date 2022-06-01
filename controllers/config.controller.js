@@ -30,7 +30,7 @@ module.exports = {
       return {
         response_code: false,
         message: "Get config error with ",
-        data: { site: stie, tag: tag },
+        data: { site: site, tag: tag },
       };
     }
   },
