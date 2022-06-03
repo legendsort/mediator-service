@@ -68,6 +68,8 @@ class URLPolicy {
 
   filterAll = async () => {
     try {
+      console.log("Stop filter");
+      return;
       console.log("-----------------filterAll start-------------------");
       await this.filterATag(this.page);
       console.log("-----------------filterAll end---------------------");

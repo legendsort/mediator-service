@@ -80,7 +80,7 @@ const pageEvent = async (page, socket) => {
   // Emitted when a request, which is produced by the page, finishes successfully
   page.on("requestfinished", async (request) => {
     console.log("====> request_finish");
-    await urlPolicy.filterAll();
+    // await urlPolicy.filterAll();
   });
 
   // Emitted when a response is received
@@ -111,15 +111,19 @@ const pageEvent = async (page, socket) => {
   await page.evaluateOnNewDocument(() => {
     window.addEventListener("click", (e) => {
       const type = e.target.getAttribute("type");
+      const id = e.target.getAttribute("id");
+
       // for upload
-      if (type === "submit") {
-        // if(type === "file") {
-        window.sendMessage("message", {
+      if (type === "text") {
+        // if (type === "file") {
+        window.sendMessage("upload", {
           response_code: true,
-          message: "Upload",
-          data: {},
+          message: "Click file choose button",
+          data: { id: id, el: e },
         });
         e.preventDefault();
+        e.stopPropagation();
+        e.uploadFile("path/to/file");
       }
     });
   });

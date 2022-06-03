@@ -33,9 +33,11 @@ class Browser {
       this.config = await this.getConfig({ site: "WIPO", tag: "Browser" });
       this.scripts = await this.getConfig({
         site: "WIPO",
-        tag: "TestWithGitlab",
+        tag: "LoginToGoogle",
+        // tag: "TestWithGitlab",
         // tag: "LoginToWIPO",
         // tag: "TestUploadWithGitlab",
+        // tag: "GoMadrid",
       });
       console.log(this.config, this.scripts);
 
@@ -106,6 +108,8 @@ class Browser {
         if (this._isEmpty) {
           await this.launchBrowser();
           if (true || this.business != action) {
+            this.socketHelper.sendMessage("send-resize", {});
+
             [result, message] = await this.BrowserActions.execute(this.scripts);
             console.log(result, message);
             // const [fileChooser] = await Promise.all([
@@ -128,7 +132,6 @@ class Browser {
             viewport.height,
           );
           this.sendScreenshot();
-          this.socketHelper.sendMessage("send-resize", {});
         } else {
           this.socketHelper.sendFailureMessage(message);
         }
@@ -140,7 +143,7 @@ class Browser {
 
     this.socket.on("mouse-move", async (data) => {
       this.BrowserActions.mouseMove(data.point.x, data.point.y);
-      await this.sendScreenshot(1000);
+      await this.sendScreenshot(2000);
     });
 
     this.socket.on("mouse-click", async (data) => {
@@ -268,9 +271,16 @@ class Browser {
       }
     });
 
+    this.socket.on("select-file", async (response) => {
+      if (response.response_code) {
+        const data = response.data;
+        const el = response.el;
+        // await el.uploadFile("/hpath/to/file");
+      }
+    });
     return this.socket;
   };
-  sendScreenshot = async (delay = 500) => {
+  sendScreenshot = async (delay = 1000) => {
     try {
       if (!this._isEmpty(this.page) && !this.busy) {
         console.log("-----------send screenshot---------------->");
