@@ -25,7 +25,7 @@ const pageEvent = async (page, socket) => {
   // Emitted when the page is fully loaded
   page.once("load", async () => {
     console.log("fully loaded");
-    await filterAll();
+    await urlPolicy.filterAll();
   });
 
   // Emitted when the page attaches a frame
@@ -54,8 +54,12 @@ const pageEvent = async (page, socket) => {
   page.on("pageerror", (error) => {});
 
   // Emitted when a script within the page uses `alert`, `prompt`, `confirm` or `beforeunload`
-  page.on("dialog", async (dialog) => {});
-
+  page.on("dialog", async (dialog) => {
+    console.log("dialog");
+  });
+  page.on("filedialog", (data) => {
+    console.log("file dialog");
+  });
   // Emitted when a new page, that belongs to the browser context, is opened
   page.on("popup", () => {
     console.log("popup");
@@ -63,7 +67,7 @@ const pageEvent = async (page, socket) => {
 
   // Emitted when the page produces a request
   page.on("request", (request) => {
-    console.log("====> request", request.url());
+    // console.log("====> request", request.url());
     handleRequest(request);
   });
 
@@ -76,7 +80,7 @@ const pageEvent = async (page, socket) => {
   // Emitted when a request, which is produced by the page, finishes successfully
   page.on("requestfinished", async (request) => {
     console.log("====> request_finish");
-    await urlPolicy.filterAll();
+    // await urlPolicy.filterAll();
   });
 
   // Emitted when a response is received
@@ -97,8 +101,35 @@ const pageEvent = async (page, socket) => {
 
   // Emitted after the page is closed
   page.once("close", () => {});
-  await page.exposeFunction("onCustomEvent", (text) => console.log(text));
+
+  await page.exposeFunction("onCustomEvent", ({ type, detail }) => {
+    console.log(`Event fired: ${type}, detail: ${detail}`);
+  });
+
+  // listen for events of type 'status' and
+  // pass 'type' and 'detail' attributes to our exposed function
+  await page.evaluateOnNewDocument(() => {
+    window.addEventListener("click", (e) => {
+      const type = e.target.getAttribute("type");
+      const id = e.target.getAttribute("id");
+
+      // for upload
+      if (type === "text") {
+        // if (type === "file") {
+        window.sendMessage("upload", {
+          response_code: true,
+          message: "Click file choose button",
+          data: { id: id, el: e },
+        });
+        e.preventDefault();
+        e.stopPropagation();
+        e.uploadFile("path/to/file");
+      }
+    });
+  });
+
   await page.exposeFunction("validateURL", urlPolicy.validateURL);
+  await page.exposeFunction("sendMessage", socketHelper.sendMessage);
 
   return page;
 };

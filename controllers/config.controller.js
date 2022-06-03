@@ -10,6 +10,31 @@ var { sendResponse } = require("./ControllerHepler");
 
 module.exports = {
   /**
+   * config.get()
+   * get config without request
+   * request parm: [site, tag]
+   * response param: [config]
+   */
+  get: async (req) => {
+    const [site, tag] = [req.site, req.tag];
+    try {
+      const response = await configModel.findOne({ site: site, tag: tag });
+
+      return {
+        response_code: true,
+        message: "Get config succeed",
+        data: response.config,
+      };
+    } catch (e) {
+      console.log(e);
+      return {
+        response_code: false,
+        message: "Get config error with ",
+        data: { site: site, tag: tag },
+      };
+    }
+  },
+  /**
    * config.fetch()
    * fetch config
    * request parm: [site, tag]
@@ -17,18 +42,46 @@ module.exports = {
    */
   fetch: async (req, res) => {
     const [site, tag] = [req.query.site, req.query.tag];
-    if(site === 'all') {
+    if (site === "all") {
       configModel.find({}, function (err, config) {
-        if (err) return sendResponse(res, 500, false, "Error when fetching config.", err);
-        if(config === null) return sendResponse(res, 202, false, "No such site and tag", tag);
-        return sendResponse(res, 200, true, "Success when fetching config.\n", config)
+        if (err)
+          return sendResponse(
+            res,
+            500,
+            false,
+            "Error when fetching config.",
+            err,
+          );
+        if (config === null)
+          return sendResponse(res, 202, false, "No such site and tag", tag);
+        return sendResponse(
+          res,
+          200,
+          true,
+          "Success when fetching config.\n",
+          config,
+        );
       });
-    }
-    else configModel.findOne({site: site, tag: tag}, function (err, config) {
-      if (err) return sendResponse(res, 500, false, "Error when fetching config.", err);
-      if(config === null) return sendResponse(res, 202, false, "No such site and tag", tag);
-      return sendResponse(res, 200, true, "Success when fetching config.\n", config)
-    });
+    } else
+      configModel.findOne({ site: site, tag: tag }, function (err, config) {
+        if (err)
+          return sendResponse(
+            res,
+            500,
+            false,
+            "Error when fetching config.",
+            err,
+          );
+        if (config === null)
+          return sendResponse(res, 202, false, "No such site and tag", tag);
+        return sendResponse(
+          res,
+          200,
+          true,
+          "Success when fetching config.\n",
+          config,
+        );
+      });
   },
 
   /**

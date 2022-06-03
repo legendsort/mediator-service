@@ -31,6 +31,7 @@ class URLPolicy {
       return;
     }
     const url = page.url();
+
     await page.$$eval(
       "a",
       (data, url) =>
@@ -67,6 +68,8 @@ class URLPolicy {
 
   filterAll = async () => {
     try {
+      console.log("Stop filter");
+      return;
       console.log("-----------------filterAll start-------------------");
       await this.filterATag(this.page);
       console.log("-----------------filterAll end---------------------");

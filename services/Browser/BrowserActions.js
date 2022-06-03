@@ -1,6 +1,8 @@
 /** @format */
 
 const sleep = require("await-sleep");
+const ConfigController = require("../../controllers/config.controller");
+
 class BrowserActions {
   constructor(page, socket, config, browser, puppeteer) {
     this.page = page;
@@ -312,49 +314,16 @@ class BrowserActions {
       return [false, "Go forward error"];
     }
   };
-  execute = async (scriptss) => {
-    let scripts = [
-      {
-        type: "visit",
-        action: {
-          url: "https://www3.wipo.int/authpage/",
-        },
-      },
-      {
-        type: "wait",
-        action: {
-          delay: "3000",
-        },
-      },
-      {
-        type: "input",
-        action: {
-          selector: `form [maxlength="100"]`,
-          value: "HYEYONGRI",
-        },
-      },
-      {
-        type: "input",
-        action: {
-          selector: `form [type="password"]`,
-          value: "OMDMIIG3KP",
-        },
-      },
-      {
-        type: "mouseClickDOM",
-        action: {
-          selector: "#authform_signin",
-        },
-      },
-    ];
-    scripts = [
-      {
-        type: "visit",
-        action: {
-          url: "http://gitlab.local.com/users/sign_in",
-        },
-      },
-    ];
+
+  waitForNavigation = async () => {
+    try {
+      await this.page.waitForNavigation();
+    } catch (e) {
+      console.log(e);
+      return false;
+    }
+  };
+  execute = async (scripts) => {
     let response_code = true,
       message = "Success";
     for (const script of scripts) {
