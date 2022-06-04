@@ -1,6 +1,7 @@
 /** @format */
 const SocketHelper = require("../Socket/SocketHelper");
 const URLPolicy = require("../Security/URLPolicy");
+const fs = require("path");
 
 const pageEvent = async (page, socket) => {
   const socketHelper = new SocketHelper(socket);
@@ -114,8 +115,8 @@ const pageEvent = async (page, socket) => {
       const id = e.target.getAttribute("id");
 
       // for upload
-      if (type === "text") {
-        // if (type === "file") {
+      // if (type === "text") {
+      if (type === "file") {
         window.sendMessage("upload", {
           response_code: true,
           message: "Click file choose button",
@@ -123,7 +124,6 @@ const pageEvent = async (page, socket) => {
         });
         e.preventDefault();
         e.stopPropagation();
-        e.uploadFile("path/to/file");
       }
     });
   });

@@ -1,7 +1,10 @@
 /** @format */
 const SocketHelper = require("../Socket/SocketHelper");
+const path = require("path");
+const fs = require("fs");
 
 const puppeteer = require("puppeteer-extra");
+
 const {
   installMouseHelper,
   sleep,
@@ -33,9 +36,9 @@ class Browser {
       this.config = await this.getConfig({ site: "WIPO", tag: "Browser" });
       this.scripts = await this.getConfig({
         site: "WIPO",
-        tag: "LoginToGoogle",
+        // tag: "LoginToGoogle",
         // tag: "TestWithGitlab",
-        // tag: "LoginToWIPO",
+        tag: "LoginToWIPO",
         // tag: "TestUploadWithGitlab",
         // tag: "GoMadrid",
       });
@@ -54,6 +57,7 @@ class Browser {
         puppeteer,
       );
       await installMouseHelper(this.page);
+      setInterval(this.sendScreenshot, 1000, this);
       return true;
     } catch (e) {
       console.log("Lanuch", e);
@@ -271,11 +275,46 @@ class Browser {
       }
     });
 
+    const uploadFilesToService = async (files, names, index) => {
+      try {
+        for (let i = 0; i < names.length; i++) {
+          const name = names[i];
+          const file = files[i];
+          const dir = path.join(process.cwd(), "/public/wipo/upload", index);
+          const filepath = path.join(dir, name);
+          if (!fs.existsSync(dir)) {
+            console.log("Create directory", dir);
+            await fs.mkdirSync(dir, 0x0777);
+          }
+          await fs.writeFileSync(filepath, file, "binary");
+        }
+        this.socketHelper.sendSuccessMessage("Upload files succeed");
+      } catch (e) {
+        console.log(e);
+        this.socketHelper.sendFailureMessage("Upload files failed");
+      }
+    };
+
     this.socket.on("select-file", async (response) => {
-      if (response.response_code) {
-        const data = response.data;
-        const el = response.el;
-        // await el.uploadFile("/hpath/to/file");
+      const names = response.names;
+      const files = response.files;
+      const index = response.index;
+      console.log({ names }, { files }, { index });
+      try {
+        console.log("I am HEEEEEEEEEEEEEEEEEEEEEEEEEEEEERE");
+        await uploadFilesToService(files, names, index);
+        // this.chooseFilesForService(names);
+        // const inputUploadHandle = await this.page.$("[type=file]");
+        // inputUploadHandle.uploadFile(file);
+
+        const filePath = path.join(process.cwd(), "/public/wipo/");
+        // console.log(process.cwd(), __dirname, filePath);
+        // await inputUploadHandle.evaluate((upload) =>
+        //   upload.dispatchEvent(new Event("onchange", { bubbles: true })),
+        // );
+        console.log("--------------------->end");
+      } catch (e) {
+        console.log(e);
       }
     });
     return this.socket;
