@@ -111,16 +111,47 @@ const pageEvent = async (page, socket) => {
   // pass 'type' and 'detail' attributes to our exposed function
   await page.evaluateOnNewDocument(() => {
     window.addEventListener("click", (e) => {
-      const type = e.target.getAttribute("type");
-      const id = e.target.getAttribute("id");
+      // get selector of element;
+      const getSelector = (elm) => {
+        try {
+          if (elm.tagName === "BODY") return "BODY";
+          const names = [];
+
+          while (elm.parentElement && elm.tagName !== "BODY") {
+            if (elm.id && false) {
+              names.unshift("#" + elm.getAttribute("id")); // getAttribute, because `elm.id` could also return a child element with name "id"
+              break; // Because ID should be unique, no more is needed. Remove the break, if you always want a full path.
+            } else {
+              let c = 1,
+                e = elm;
+              for (
+                ;
+                e.previousElementSibling;
+                e = e.previousElementSibling, c++
+              );
+              names.unshift(elm.tagName + ":nth-child(" + c + ")");
+            }
+            elm = elm.parentElement;
+          }
+          return names.join(">");
+        } catch (e) {
+          console.log(e);
+          return "Error";
+        }
+      };
+
+      const type = e.target.type;
 
       // for upload
       // if (type === "text") {
       if (type === "file") {
+        const selector = getSelector(e.target);
+        console.log(selector);
+
         window.sendMessage("upload", {
           response_code: true,
           message: "Click file choose button",
-          data: { id: id, el: e },
+          data: { selector: selector },
         });
         e.preventDefault();
         e.stopPropagation();

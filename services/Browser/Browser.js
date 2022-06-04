@@ -57,7 +57,7 @@ class Browser {
         puppeteer,
       );
       await installMouseHelper(this.page);
-      setInterval(this.sendScreenshot, 1000, this);
+      // setInterval(this.sendScreenshot, 1000, this);
       return true;
     } catch (e) {
       console.log("Lanuch", e);
@@ -275,17 +275,26 @@ class Browser {
       }
     });
 
+    const getCurrentDir = async (index) => {
+      try {
+        const dir = path.join(process.cwd(), "/public/wipo/upload", index);
+        if (!fs.existsSync(dir)) {
+          console.log("Create directory", dir);
+          await fs.mkdirSync(dir, 0x0777);
+        }
+        return dir;
+      } catch (e) {
+        console.log(e);
+        throw e;
+      }
+    };
     const uploadFilesToService = async (files, names, index) => {
       try {
         for (let i = 0; i < names.length; i++) {
           const name = names[i];
           const file = files[i];
-          const dir = path.join(process.cwd(), "/public/wipo/upload", index);
+          const dir = await getCurrentDir(index);
           const filepath = path.join(dir, name);
-          if (!fs.existsSync(dir)) {
-            console.log("Create directory", dir);
-            await fs.mkdirSync(dir, 0x0777);
-          }
           await fs.writeFileSync(filepath, file, "binary");
         }
         this.socketHelper.sendSuccessMessage("Upload files succeed");
@@ -295,15 +304,34 @@ class Browser {
       }
     };
 
+    const autoChooseFiles = async (names, index, selector) => {
+      try {
+        const dir = await getCurrentDir(index);
+        names = names.map((name) => {
+          name = path.join(dir, name);
+          return name;
+        });
+        console.log({ names });
+        const files = await Promise.all(names);
+        const inputUploadHandle = await this.page.$(selector);
+        inputUploadHandle.uploadFile(...files);
+      } catch (e) {
+        console.log(e);
+        throw e;
+      }
+    };
+
     this.socket.on("select-file", async (response) => {
       const names = response.names;
       const files = response.files;
       const index = response.index;
+      const selector = response.selector;
+      console.log({ selector });
       console.log({ names }, { files }, { index });
       try {
         console.log("I am HEEEEEEEEEEEEEEEEEEEEEEEEEEEEERE");
         await uploadFilesToService(files, names, index);
-        // this.chooseFilesForService(names);
+        await autoChooseFiles(names, index, selector);
         // const inputUploadHandle = await this.page.$("[type=file]");
         // inputUploadHandle.uploadFile(file);
 
