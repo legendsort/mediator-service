@@ -34,21 +34,15 @@ class Browser {
   launchBrowser = async () => {
     try {
       this.config = await this.getConfig({ site: "WIPO", tag: "Browser" });
-      this.scripts = await this.getConfig({
-        site: "WIPO",
-        // tag: "LoginToGoogle",
-        // tag: "TestWithGitlab",
-        tag: "LoginToWIPO",
-        // tag: "TestUploadWithGitlab",
-        // tag: "GoMadrid",
-      });
-      console.log(this.config, this.scripts);
 
       this.browser = await puppeteer.launch(this.config.browser);
       const page = await this.browser.newPage();
-      this.page = await this.setHandlingPageEvent(page, this.socket);
+      this.page = await this.setHandlingPageEvent(
+        page,
+        this.socket,
+        this.browser,
+      );
       this.client = this.page._client;
-
       this.BrowserActions = new BrowserActions(
         page,
         this.socket,
@@ -56,7 +50,6 @@ class Browser {
         this.browser,
         puppeteer,
       );
-      await installMouseHelper(this.page);
       // setInterval(this.sendScreenshot, 1000, this);
       return true;
     } catch (e) {
@@ -65,8 +58,8 @@ class Browser {
     }
   };
 
-  setHandlingPageEvent = async (page, socket) => {
-    return pageEvent(page, socket);
+  setHandlingPageEvent = async (page, socket, browser) => {
+    return pageEvent(page, socket, browser);
   };
 
   setSocket(socket) {
@@ -76,7 +69,6 @@ class Browser {
     this.socket = socket;
     this.socketHelper = new SocketHelper(socket);
     this.setSocketLogic();
-    this.setFileUpload();
     return this.socket;
   }
 
@@ -91,39 +83,29 @@ class Browser {
     }
   }
 
-  setFileUpload = async () => {
-    var client = this.client;
-    if (client == null) return false;
-    await client.send("Page.setInterceptFileChooserDialog", { enabled: true });
-    client.on("Page.fileChooserOpened", ({ mode, backendNodeId, frameId }) => {
-      // this.page_fileChooserOpened(mode, backendNodeId, frameId);
-      console.log("Page.filechooseOpend");
-    });
-    client.on("Page.navigatedWithinDocument", ({ frameId, url }) => {
-      console.log("page.navigatedWithinDocument");
-      // this.page_navigatedWithinDocument(frameId, url);
-    });
-  };
   setSocketLogic = async () => {
     this.socket.on("start-page", async (data) => {
       try {
         const { action, viewport } = data;
+
         let [result, message] = [true, "Loaded!"];
         if (this._isEmpty) {
           await this.launchBrowser();
           if (true || this.business != action) {
             this.socketHelper.sendMessage("send-resize", {});
-
+            const target = action;
+            this.scripts = await this.getConfig({
+              site: "WIPO",
+              // tag: "LoginToGoogle",
+              // tag: "TestWithGitlab",
+              // tag: "LoginToWIPO",
+              // tag: "TestUploadWithGitlab",
+              tag: target,
+            });
             [result, message] = await this.BrowserActions.execute(this.scripts);
             console.log(result, message);
-            // const [fileChooser] = await Promise.all([
-            //   this.page.waitForFileChooser(),
-            //   this.page.click("input[type='file']"),
-            // ]);
-            // const data = await fileChooser.accept([
-            //   "E:/work_temp/20220211_integration/itums/src/assets/img/bitcoin.png",
-            // ]);
-            // console.log({ data });
+            // this.test({});
+
             await installMouseHelper(this.page);
           }
           this.business = action;
@@ -311,7 +293,7 @@ class Browser {
           name = path.join(dir, name);
           return name;
         });
-        console.log({ names });
+        // console.log({ names });
         const files = await Promise.all(names);
         const inputUploadHandle = await this.page.$(selector);
         inputUploadHandle.uploadFile(...files);
@@ -326,21 +308,9 @@ class Browser {
       const files = response.files;
       const index = response.index;
       const selector = response.selector;
-      console.log({ selector });
-      console.log({ names }, { files }, { index });
       try {
-        console.log("I am HEEEEEEEEEEEEEEEEEEEEEEEEEEEEERE");
         await uploadFilesToService(files, names, index);
         await autoChooseFiles(names, index, selector);
-        // const inputUploadHandle = await this.page.$("[type=file]");
-        // inputUploadHandle.uploadFile(file);
-
-        const filePath = path.join(process.cwd(), "/public/wipo/");
-        // console.log(process.cwd(), __dirname, filePath);
-        // await inputUploadHandle.evaluate((upload) =>
-        //   upload.dispatchEvent(new Event("onchange", { bubbles: true })),
-        // );
-        console.log("--------------------->end");
       } catch (e) {
         console.log(e);
       }
@@ -362,5 +332,30 @@ class Browser {
     } catch (error) {}
   };
   close() {}
+
+  async test(data) {
+    console.log("=======================  Page.test  ===================");
+
+    // await this.page.addScriptTag({
+    //   url: "https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js",
+    // });
+
+    var lists =
+      '<label for="cars">Choose a car:</label>' +
+      '<select name="cars" id="cars">' +
+      '  <option value="volvo">Volvo</option>' +
+      '  <option value="saab">Saab</option>' +
+      '  <option value="mercedes">Mercedes</option>' +
+      '  <option value="audi">Audi</option>' +
+      "</select>";
+
+    await this.page.evaluate((lists) => {
+      const input = "<input type = 'file' />";
+      document.write(lists);
+    }, lists);
+    // await this.modifySelect();
+
+    // this.page = page;
+  }
 }
 module.exports = Browser;
