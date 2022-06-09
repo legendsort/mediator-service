@@ -20,6 +20,7 @@ class BrowserActions {
     } else {
       try {
         await this.page.goto(url, { waitUntil: "domcontentloaded" });
+        console.log("SSSSSSSSSSSSSSSSSSSSSSSSS")
         return [true, "Sucessfully"];
       } catch (error) {
         let str_error = error.toString();

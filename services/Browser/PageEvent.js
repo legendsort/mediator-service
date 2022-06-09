@@ -17,15 +17,7 @@ const pageEvent = async (page, socket, browser) => {
     }
   };
 
-  browser.on("disconnected", (data) => {
-    console.log("disconnected");
-  });
-  browser.on("targetchanged", (data) => {
-    console.log("target canged");
-  });
-  browser.on("targetcreated", (data) => {
-    console.log("target created");
-  });
+
 
   // Emitted when the DOM is parsed and ready (without waiting for resources)
   page.once("domcontentloaded", () => {
@@ -68,10 +60,14 @@ const pageEvent = async (page, socket, browser) => {
   });
 
   // Emitted when the page emits an error event (for example, the page crashes)
-  page.on("error", (error) => {});
+  page.on("error", (error) => {
+    console.log("error ", error)
+  });
 
   // Emitted when a script within the page has uncaught exception
-  page.on("pageerror", (error) => {});
+  page.on("pageerror", (error) => {
+    console.log("page error", error)
+  });
 
   // Emitted when a script within the page uses `alert`, `prompt`, `confirm` or `beforeunload`
   page.on("dialog", async (dialog) => {

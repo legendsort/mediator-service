@@ -50,6 +50,30 @@ class Browser {
         this.browser,
         puppeteer,
       );
+      this.browser.on("disconnected", (data) => {
+        console.log("browser_disconnected");
+    
+        // this.notice("please wait util restart broswer");
+    
+        // this.puppeteer = {};
+    
+        // this.create_browser(this.cur_url);
+      });
+      this.browser.on("targetchanged", (target) => {
+        console.log("target changed", target.url());
+
+      });
+      this.browser.on("targetcreated", async (target) => {
+        if (target.type() == "page") {
+          console.log("browser_targetcreated");
+          
+          const newPage = await target.page();
+          const newURL = newPage.url();
+          await newPage.close();
+          const response = await this.BrowserActions.visit({url: newURL})
+          console.log(this.page.url())
+        }
+      });
       // setInterval(this.sendScreenshot, 1000, this);
       return true;
     } catch (e) {
