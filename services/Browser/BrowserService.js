@@ -1,33 +1,36 @@
 /** @format */
-const Browser = require("./Browser");
+const Browser = require('./Browser')
 class BrowserService {
   constructor() {
-    this.browser = {};
+    this.browser = {}
   }
 
-  makeBrowser = (id) => {
+  makeBrowser = async (id) => {
     if (this.existBrowser(id)) {
-      return this.browser[id];
+      return this.browser[id]
     } else {
-      this.browser[id] = new Browser(id);
-      return this.browser[id];
+      this.browser[id] = new Browser(id)
+      console.log('make browser')
+      await this.browser[id].launchBrowser()
+
+      return this.browser[id]
     }
-  };
+  }
 
   removeBrowser = (id) => {
-    delete this.browser[id];
-  };
+    delete this.browser[id]
+  }
 
   existBrowser(id) {
     if (this.browser[id] === undefined) {
-      return false;
+      return false
     } else {
-      return true;
+      return true
     }
   }
 
   getBrowser(id) {
-    return this.existBrowser(id) ? this.browser[id] : false;
+    return this.existBrowser(id) ? this.browser[id] : false
   }
 }
-module.exports = BrowserService;
+module.exports = BrowserService
