@@ -94,14 +94,22 @@ class Browser {
           if (true || this.business != action) {
             this.socketHelper.sendMessage("send-resize", {});
             const target = action;
-            this.scripts = await this.getConfig({
+            const config = await this.getConfig({
               site: "WIPO",
               // tag: "LoginToGoogle",
               // tag: "TestWithGitlab",
               // tag: "LoginToWIPO",
               // tag: "TestUploadWithGitlab",
-              tag: target,
+              tag: "Link",
             });
+            this.scripts =  [{
+              "type": "visit",
+              "action": {
+                "url": config[target]
+              }
+            }]
+            console.log(this.scripts);
+
             [result, message] = await this.BrowserActions.execute(this.scripts);
             console.log(result, message);
             // this.test({});
@@ -270,6 +278,7 @@ class Browser {
         throw e;
       }
     };
+    
     const uploadFilesToService = async (files, names, index) => {
       try {
         for (let i = 0; i < names.length; i++) {

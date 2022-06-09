@@ -1,6 +1,8 @@
 /** @format */
-
-const io = require("socket.io")();
+const server = require("http").createServer();
+const io = require("socket.io")(server, {
+  maxHttpBufferSize: 1e8, pingTimeout: 60000
+});
 const socketioJwt = require("socketio-jwt");
 const web_app = require("../app");
 const SocketHelper = require("./Socket/SocketHelper");
