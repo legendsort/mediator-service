@@ -33,6 +33,7 @@
     "puppeteer": "^13.4.0",
     "puppeteer-extra": "^3.2.3",
     "socket.io": "^4.4.1",
-    "socketio-jwt": "^4.6.2"
+    "socketio-jwt": "^4.6.2",
+    "uuid": "^8.3.2"
   }
 }

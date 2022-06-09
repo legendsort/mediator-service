@@ -1,5 +1,5 @@
 /** @format */
-const fs = require("fs");
+const fs = require('fs')
 /**
  * connectController.js
  *
@@ -11,19 +11,20 @@ module.exports = {
    */
   browser: async (req, res) => {
     try {
-      let identifier = req.user.identifier;
-      let browser_srv = req.app.get("browser-service");
-      let response_code = browser_srv.makeBrowser(identifier);
+      let identifier = req.user.identifier
+      let browser_srv = req.app.get('browser-service')
+      let response_code = await browser_srv.makeBrowser(identifier)
+      console.log('connector ')
       return res.json({
         response_code: response_code ? true : false,
-        message: response_code ? "Sccuessfully" : "Failed create browser",
-      });
+        message: response_code ? 'Sccuessfully' : 'Failed create browser',
+      })
     } catch (error) {
-      console.log(error);
+      console.log(error)
       return res.json({
         response_code: false,
-        message: "Server has error",
-      });
+        message: 'Server has error',
+      })
     }
   },
 
@@ -55,4 +56,4 @@ module.exports = {
    *
    */
   remove: async (req, res) => {},
-};
+}
