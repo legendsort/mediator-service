@@ -7,10 +7,11 @@ class BrowserService {
 
   makeBrowser = async (id) => {
     if (this.existBrowser(id)) {
+      console.log('====Exist browser')
       return this.browser[id]
     } else {
       this.browser[id] = new Browser(id)
-      console.log('make browser')
+      console.log('====make new browser')
       await this.browser[id].launchBrowser()
 
       return this.browser[id]
