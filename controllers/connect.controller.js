@@ -14,7 +14,6 @@ module.exports = {
       let identifier = req.user.identifier
       let browser_srv = req.app.get('browser-service')
       let response_code = await browser_srv.makeBrowser(identifier)
-      console.log('connector ')
       return res.json({
         response_code: response_code ? true : false,
         message: response_code ? 'Sccuessfully' : 'Failed create browser',

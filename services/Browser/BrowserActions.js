@@ -24,7 +24,6 @@ class BrowserActions {
       try {
         this.socketHelper.sendMessage('status', 'loading')
         await this.page.goto(url, {waitUntil: 'networkidle0'})
-        console.log('SSSSSSSSSSSSSSSSSSSSSSSSS')
         ans = [true, 'Sucessfully']
       } catch (error) {
         let str_error = error.toString()

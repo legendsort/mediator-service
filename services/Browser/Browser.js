@@ -31,6 +31,7 @@ class Browser {
 
   launchBrowser = async () => {
     try {
+      console.log('====launch browser')
       this.config = await this.getConfig({site: 'WIPO', tag: 'Browser'})
 
       this.browser = await puppeteer.launch(this.config.browser)
@@ -49,7 +50,7 @@ class Browser {
           const newPage = await target.page()
           const newURL = newPage.url()
           await newPage.close()
-          const response = await this.BrowserActions.visit({url: newURL})
+          if (this.BrowserActions) await this.BrowserActions.visit({url: newURL})
           console.log(this.page.url())
         }
       })
@@ -61,16 +62,18 @@ class Browser {
     }
   }
 
-  setHandlingPageEvent = async (page, socket, browser) => {
-    return pageEvent(page, socket, browser)
+  setHandlingPageEvent = async (page, socket) => {
+    return pageEvent(page, socket)
   }
 
   setSocket = async (socket) => {
+    console.log('====set socket')
     if (this.socket) {
       this.socket.disconnect()
     }
     this.socket = socket
-    this.page = await this.setHandlingPageEvent(this.page, this.socket, this.browser)
+    this.page.removeAllListeners('request')
+    this.page = await this.setHandlingPageEvent(this.page, this.socket)
 
     this.socketHelper = new SocketHelper(socket)
     await this.setSocketLogic()
@@ -173,12 +176,10 @@ class Browser {
       } catch (error) {}
     })
 
-    this.socket.on('key-press', async (data) => {
-      try {
-        await this.BrowserActions.keyPress(data.key)
-
-        await this.sendScreenshot()
-      } catch (error) {}
+    this.socket.on('keyEvent', async (data) => {
+      if (data.type === 'singleKeyDown') await this.BrowserActions.keyDown(data.key)
+      if (data.type === 'selectAll') await this.BrowserActions.selectAll()
+      await this.sendScreenshot()
     })
 
     this.socket.on('set-viewport', async (data) => {

@@ -3,12 +3,13 @@ const SocketHelper = require('../Socket/SocketHelper')
 const fs = require('path')
 const URLPolicy = require('../Security/URLPolicy')
 
-const pageEvent = async (page, socket, browser) => {
+const pageEvent = async (page, socket) => {
   const socketHelper = new SocketHelper(socket)
   const urlPolicy = new URLPolicy(page, socket)
   page.setRequestInterception(true)
   const handleRequest = (request) => {
     const url = request.url()
+    console.log('----> New request: ', request.resourceType())
     if (urlPolicy.validateURL(url) == true) {
       request.continue()
     } else {
