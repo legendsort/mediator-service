@@ -19,18 +19,18 @@ const pageEvent = async (page, socket) => {
   }
 
   // Emitted when the DOM is parsed and ready (without waiting for resources)
-  page.once('domcontentloaded', () => {
+  page.on('domcontentloaded', () => {
     // socketHelper.sendMessage("status", "loaded");
 
     console.log('loaded')
   })
 
   // Emitted when the page is fully loaded
-  page.once('load', async () => {
+  page.on('load', async () => {
     console.log('fully loaded')
     // socketHelper.sendMessage("status", "loaded");
-
     await urlPolicy.filterAll()
+    socketHelper.sendMessage('status', 'loaded')
   })
 
   // Emitted when the page attaches a frame
@@ -41,7 +41,6 @@ const pageEvent = async (page, socket) => {
   // Emitted when a frame within the page is navigated to a new URL
   page.on('framenavigated', async (frame) => {
     console.log('==========>frame navigated ', frame.url())
-    socketHelper.sendMessage('status', 'loaded')
 
     try {
       await urlPolicy.filterAll()

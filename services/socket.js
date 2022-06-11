@@ -24,7 +24,6 @@ io.on('connection', async (socket) => {
 
     let user = socket.decoded_token
     let browser = browser_srv.getBrowser(user.identifier)
-    console.log(user.identifier)
     if (browser) {
       await browser.setSocket(socket)
       const socketHelper = new SocketHelper(socket)

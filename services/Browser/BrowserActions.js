@@ -107,13 +107,14 @@ class BrowserActions {
 
   async mouseDBclick(x, y) {
     if (!this._isEmpty(this.puppeteer)) {
-      return await this.puppeteer.mouse_dblclick(x, y)
+      await this.page.mouse.click(x, y, {clickCount: 2, delay: 100})
     }
     return false
   }
 
   async keyDown(code) {
     if (this._isEmpty(this.page) == false) {
+      console.log({code})
       return await this.page.keyboard.down(code)
     }
     return false
@@ -255,7 +256,7 @@ class BrowserActions {
       const page = this.page
 
       const context = await this.browser.defaultBrowserContext()
-      await context.overridePermissions(this.getUrl(), ['clipboard-read'])
+      await context.overridePermissions(this.getUrl(), ['clipboard-read', 'clipboard-write'])
 
       await page.bringToFront()
       const clipText = await page.evaluate(() => {
@@ -347,7 +348,6 @@ class BrowserActions {
       if (fn in this) {
         try {
           const [res, msg] = await this[fn](script.action)
-          console.log({res}, {msg})
           if (res === false) {
             response_code = false
             message = msg
@@ -367,7 +367,7 @@ class BrowserActions {
 
     console.error('execute script', response_code, message)
 
-    return [response_code, message]
+    return {response_code: response_code, message: message}
   }
 }
 
