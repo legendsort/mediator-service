@@ -9,7 +9,7 @@ const pageEvent = require('./PageEvent')
 const BrowserActions = require('./BrowserActions')
 const SocketHelper = require('../Socket/SocketHelper')
 const ConfigController = require('../../controllers/config.controller')
-
+const {proxifySelect, proxifyDynamicallyAddedSelects} = require('./ProxySelect')
 class Browser {
   constructor(id) {
     this.id = id
@@ -54,7 +54,7 @@ class Browser {
           console.log(this.page.url())
         }
       })
-      // setInterval(this.sendScreenshot, 1000, this);
+      // setInterval(this.sendScreenshot, 1000, this)
       return true
     } catch (e) {
       console.log('Lanuch', e)
@@ -358,7 +358,7 @@ class Browser {
   }
   close() {}
 
-  async test(data) {
+  async test() {
     console.log('=======================  Page.test  ===================')
 
     // await this.page.addScriptTag({
@@ -366,18 +366,43 @@ class Browser {
     // });
 
     var lists =
-      '<label for="cars">Choose a car:</label>' +
       '<select name="cars" id="cars">' +
       '  <option value="volvo">Volvo</option>' +
       '  <option value="saab">Saab</option>' +
       '  <option value="mercedes">Mercedes</option>' +
       '  <option value="audi">Audi</option>' +
       '</select>'
+    try {
+      console.log(path.join(__dirname, 'ProxySelect.css'))
+      await this.page.addStyleTag({path: path.join(__dirname, 'ProxySelect.css')})
+      await this.page.addScriptTag({path: path.join(__dirname, 'ProxySelect.js')})
+      // await this.page.exposeFunction('proxifySelect', proxifySelect)
+      // await this.page.exposeFunction(
+      //   'proxifyDynamicallyAddedSelects',
+      //   proxifyDynamicallyAddedSelects
+      // )
 
-    await this.page.evaluate((lists) => {
-      const input = "<input type = 'file' />"
-      document.write(lists)
-    }, lists)
+      await this.page.evaluate((lists) => {
+        var wrapper = document.createElement('div')
+        wrapper.innerHTML = lists
+        var div = wrapper.firstChild
+        document.body.appendChild(div)
+        var selectNodes = document.getElementsByTagName('select')
+        console.log('------------------------>  select event listener')
+
+        for (var i = 0, len = selectNodes.length; i < len; i++) {
+          var selectNode = selectNodes[i]
+          console.log('====>', selectNode.hasAttribute('no-proxy-select'))
+          window.proxifySelect(selectNode)
+          console.log(selectNode)
+        }
+        console.log(selectNodes.length)
+        window.proxifyDynamicallyAddedSelects()
+      }, lists)
+    } catch (e) {
+      console.log(e)
+    }
+
     // await this.modifySelect();
 
     // this.page = page;

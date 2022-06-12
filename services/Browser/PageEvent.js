@@ -1,6 +1,6 @@
 /** @format */
 const SocketHelper = require('../Socket/SocketHelper')
-const fs = require('path')
+const path = require('path')
 const URLPolicy = require('../Security/URLPolicy')
 
 const pageEvent = async (page, socket) => {
@@ -28,8 +28,8 @@ const pageEvent = async (page, socket) => {
   // Emitted when the page is fully loaded
   page.on('load', async () => {
     console.log('fully loaded')
-    // socketHelper.sendMessage("status", "loaded");
     await urlPolicy.filterAll()
+    changeProxySelect()
     socketHelper.sendMessage('status', 'loaded')
   })
 
@@ -125,6 +125,25 @@ const pageEvent = async (page, socket) => {
   // await page.exposeFunction('onCustomEvent', ({type, detail}) => {
   //   console.log(`Event fired: ${type}, detail: ${detail}`)
   // })
+  changeProxySelect = async () => {
+    try {
+      console.log(path.join(__dirname, 'ProxySelect.css'))
+      await page.addStyleTag({path: path.join(__dirname, 'ProxySelect.css')})
+      await page.addScriptTag({path: path.join(__dirname, 'ProxySelect.js')})
+      await page.evaluate(() => {
+        var selectNodes = document.getElementsByTagName('select')
+        console.log('------------------------>  select event listener')
+
+        for (var i = 0, len = selectNodes.length; i < len; i++) {
+          var selectNode = selectNodes[i]
+          window.proxifySelect(selectNode)
+        }
+        window.proxifyDynamicallyAddedSelects()
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }
 
   await page.evaluateOnNewDocument(async () => {
     console.log('Evaluate document')
@@ -171,104 +190,6 @@ const pageEvent = async (page, socket) => {
         e.stopPropagation()
       }
       return
-      function onConvertSelectClick(event) {
-        var id_list = event.currentTarget.id_list
-
-        var dom_list = document.getElementById(id_list)
-        var list_display = dom_list.style.display
-
-        if (list_display == 'none') {
-          dom_list.style.display = 'block'
-        } else {
-          dom_list.style.display = 'none'
-        }
-      }
-
-      function onConvertOptionClick(event) {
-        var id_list = event.currentTarget.id_list
-        var id_btn = event.currentTarget.id_btn
-
-        var value = event.target.value
-        var text = event.target.innerHTML
-
-        var dom_select = document.getElementById(id_btn)
-        dom_select.innerHTML = text
-
-        var dom_list = document.getElementById(id_list)
-        dom_list.style.display = 'none'
-      }
-
-      function convert(no) {
-        console.log('CONVERT ---------L')
-        var parent = document.querySelector('select'),
-          docFrag = document.createDocumentFragment(),
-          list = document.createElement('ul')
-
-        if (parent === undefined) {
-          return
-        }
-
-        var parent_display = parent.style.display
-        if (parent_display == 'none') {
-          return
-        }
-
-        var parent_div = document.createElement('div')
-        var select_btn = document.createElement('div')
-        var current_option = parent.options[parent.selectedIndex].text
-        var current_width = parent.style.width
-
-        while (parent.firstChild) {
-          var option = parent.removeChild(parent.firstChild)
-          if (option.nodeType !== 1) continue
-          var listItem = document.createElement('li')
-          for (var i in option) {
-            if (option.hasAttribute(i)) listItem.setAttribute(i, option.getAttribute(i))
-          }
-          while (option.firstChild) {
-            listItem.appendChild(option.firstChild)
-          }
-          docFrag.appendChild(listItem)
-        }
-
-        for (var i in parent) {
-          if (parent.hasAttribute(i)) list.setAttribute(i, parent.getAttribute(i))
-        }
-
-        list.appendChild(docFrag)
-        list.setAttribute('id', 'lang_list' + no)
-        list.addEventListener('click', onConvertOptionClick)
-        list.id_list = 'lang_list' + no
-        list.id_btn = 'mybtn' + no
-
-        list.setAttribute(
-          'style',
-          'list-style: none; margin: 0; padding: 0 10px; cursor: pointer; border: 1px solid black; max-height: 300px; overflow: auto; box-sizing: border-box; position: absolute; background-color: white; z-index: 100;'
-        )
-        list.style.display = 'none'
-        list.style.width = current_width
-
-        select_btn.setAttribute('id', 'mybtn' + no)
-        select_btn.addEventListener('click', onConvertSelectClick)
-        select_btn.id_list = 'lang_list' + no
-
-        select_btn.setAttribute(
-          'style',
-          "background-repeat: no-repeat, repeat; background-position: 100% center; background-size: 15px 10px; background-color: white; text-align: left;border: 2px solid black; cursor: pointer; box-sizing: border-box; border-radius: 4px; padding: 1px 10px; display: inline-block; background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR2ZmTPdWRicfeVgmuHeWynnkCz_fgFC4Rl2w&usqp=CAU');"
-        )
-        select_btn.innerHTML = current_option
-        select_btn.style.width = current_width
-
-        parent_div.appendChild(select_btn)
-        parent_div.appendChild(list)
-        parent_div.style.display = 'inline-block'
-
-        parent.parentNode.replaceChild(parent_div, parent)
-      }
-
-      const selectElements = document.querySelectorAll('select')
-      console.log(selectElements.length)
-      for (let i = 0; i < selectElements.length; i++) convert(i)
     })
   })
   try {
