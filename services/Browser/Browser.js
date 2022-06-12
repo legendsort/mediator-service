@@ -123,7 +123,11 @@ class Browser {
               },
             ]
             console.log(this.scripts)
-            await this.BrowserActions.execute(this.scripts)
+            const response = await this.BrowserActions.execute(this.scripts)
+            console.log(response)
+            if (response.response_code === false) {
+              this.socketHelper.sendFailureMessage(response.message)
+            }
             // this.test({});
 
             await installMouseHelper(this.page)
@@ -151,6 +155,7 @@ class Browser {
 
     this.socket.on('mouse-click', async (data) => {
       try {
+        console.log('Click:', data.point.x, data.point.y)
         await this.BrowserActions.mouseClick(data.point.x, data.point.y)
         await this.sendScreenshot()
       } catch (error) {}
@@ -163,6 +168,8 @@ class Browser {
     })
 
     this.socket.on('mouse-down', async (data) => {
+      console.log('mouse down:', data.point.x, data.point.y)
+
       try {
         this.BrowserActions.mouseDown(data.point.x, data.point.y)
         await this.sendScreenshot()
@@ -170,6 +177,8 @@ class Browser {
     })
 
     this.socket.on('mouse-up', async (data) => {
+      console.log('mouse up:', data.point.x, data.point.y)
+
       try {
         this.BrowserActions.mouseUp(data.point.x, data.point.y)
         await this.sendScreenshot()
@@ -177,7 +186,7 @@ class Browser {
     })
 
     this.socket.on('keyEvent', async (data) => {
-      if (data.type === 'singleKeyDown') await this.BrowserActions.keyDown(data.key)
+      if (data.type === 'singleKeyDown') await this.BrowserActions.keyPress(data.key)
       if (data.type === 'selectAll') await this.BrowserActions.selectAll()
       await this.sendScreenshot()
     })
@@ -339,7 +348,7 @@ class Browser {
         console.log('-----------send screenshot---------------->')
         let img = await this.BrowserActions.screenshot()
         this.busy = true
-        this.socketHelper.sendMessage('send-screenshot', {screen: img})
+        this.socketHelper.sendMessage('send-screenshot', {screen: img, url: this.page.url()})
 
         await sleep(delay)
 
