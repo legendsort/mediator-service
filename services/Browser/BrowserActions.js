@@ -1,16 +1,14 @@
 /** @format */
 
 const sleep = require('await-sleep')
-const SocketHelper = require('../Socket/SocketHelper')
 
 class BrowserActions {
-  constructor(page, socket, config, browser, puppeteer) {
+  constructor(page, socket, config, browser, socketHelper) {
     this.page = page
     this.socket = socket
     this.config = config
     this.browser = browser
-    this.puppeteer = puppeteer
-    this.socketHelper = new SocketHelper(socket)
+    this.socketHelper = socketHelper
   }
 
   async visit(action) {
@@ -106,7 +104,7 @@ class BrowserActions {
   }
 
   async mouseDBclick(x, y) {
-    if (!this._isEmpty(this.puppeteer)) {
+    if (!this._isEmpty(this.page)) {
       await this.page.mouse.click(x, y, {clickCount: 2, delay: 100})
     }
     return false

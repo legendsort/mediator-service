@@ -7,7 +7,6 @@ class BrowserService {
 
   makeBrowser = async (id) => {
     if (this.existBrowser(id)) {
-      console.log('====Exist browser')
       return this.browser[id]
     } else {
       this.browser[id] = new Browser(id)
@@ -26,6 +25,7 @@ class BrowserService {
     if (this.browser[id] === undefined) {
       return false
     } else {
+      console.log('====Exist browser')
       return true
     }
   }

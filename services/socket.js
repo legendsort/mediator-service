@@ -6,7 +6,7 @@ const io = require('socket.io')(server, {
 })
 const socketioJwt = require('socketio-jwt')
 const web_app = require('../app')
-const SocketHelper = require('./Socket/SocketHelper')
+const SocketHelper = require('../helper/SocketHelper')
 
 const socket = {
   io: io,

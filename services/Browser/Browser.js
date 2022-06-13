@@ -3,12 +3,12 @@ const fs = require('fs')
 const path = require('path')
 const puppeteer = require('puppeteer-extra')
 
-const {installMouseHelper, sleep} = require('../../helper/installMouseHelper')
-
 const pageEvent = require('./PageEvent')
 const BrowserActions = require('./BrowserActions')
-const SocketHelper = require('../Socket/SocketHelper')
-const ConfigController = require('../../controllers/config.controller')
+
+const getConfig = require('../../helper/ConfigHelper')
+const SocketHelper = require('../../helper/SocketHelper')
+const {installMouseHelper, sleep} = require('../../helper/installMouseHelper')
 
 class Browser {
   constructor(id) {
@@ -19,23 +19,14 @@ class Browser {
     this.socketHelper = {}
   }
 
-  getConfig = async (req) => {
-    const response = await ConfigController.get(req)
-    if (response.response_code === false) {
-      this.socketHelper.sendFailureMessage('Get Config Error!')
-      throw 'Get config error'
-    }
-    const res = JSON.parse(response.data)
-    return res
-  }
-
   launchBrowser = async () => {
     try {
       console.log('====launch browser')
-      this.config = await this.getConfig({site: 'WIPO', tag: 'Browser'})
+      this.config = await getConfig({site: 'WIPO', tag: 'Browser'})
 
       this.browser = await puppeteer.launch(this.config.browser)
       this.page = await this.browser.newPage()
+      await this.page.setDefaultNavigationTimeout(60000)
 
       this.browser.on('disconnected', (data) => {
         console.log('browser_disconnected')
@@ -54,7 +45,7 @@ class Browser {
           console.log(this.page.url())
         }
       })
-      // setInterval(this.sendScreenshot, 1000, this);
+      setInterval(() => this.sendScreenshot(1000), 2000, this)
       return true
     } catch (e) {
       console.log('Lanuch', e)
@@ -62,8 +53,8 @@ class Browser {
     }
   }
 
-  setHandlingPageEvent = async (page, socket) => {
-    return pageEvent(page, socket)
+  setHandlingPageEvent = async (page, socket, socketHelper) => {
+    return pageEvent(page, socket, socketHelper)
   }
 
   setSocket = async (socket) => {
@@ -72,10 +63,10 @@ class Browser {
       this.socket.disconnect()
     }
     this.socket = socket
-    this.page.removeAllListeners('request')
-    this.page = await this.setHandlingPageEvent(this.page, this.socket)
-
     this.socketHelper = new SocketHelper(socket)
+
+    this.page.removeAllListeners('request')
+    this.page = await this.setHandlingPageEvent(this.page, this.socket, this.socketHelper)
     await this.setSocketLogic()
     return this.socket
   }
@@ -100,18 +91,14 @@ class Browser {
           this.socket,
           this.config,
           this.browser,
-          puppeteer
+          this.socketHelper
         )
         let [result, message] = [true, 'Loaded!']
         if (this._isEmpty) {
           if (true || this.business != action) {
             this.socketHelper.sendMessage('send-resize', {})
-            const config = await this.getConfig({
+            const config = await getConfig({
               site: 'WIPO',
-              // tag: "LoginToGoogle",
-              // tag: "TestWithGitlab",
-              // tag: "LoginToWIPO",
-              // tag: "TestUploadWithGitlab",
               tag: 'Link',
             })
             this.scripts = [
@@ -128,8 +115,6 @@ class Browser {
             if (response.response_code === false) {
               this.socketHelper.sendFailureMessage(response.message)
             }
-            // this.test({});
-
             await installMouseHelper(this.page)
           }
           this.business = action
@@ -150,7 +135,7 @@ class Browser {
 
     this.socket.on('mouse-move', async (data) => {
       this.BrowserActions.mouseMove(data.point.x, data.point.y)
-      await this.sendScreenshot(2000)
+      // await this.sendScreenshot(2000)
     })
 
     this.socket.on('mouse-click', async (data) => {
@@ -201,7 +186,7 @@ class Browser {
     this.socket.on('mouse-wheel', async (data) => {
       try {
         await this.BrowserActions.setWheel(data.x, data.y)
-        await this.sendScreenshot()
+        await this.sendScreenshot(1000)
       } catch (error) {}
     })
 
@@ -318,7 +303,6 @@ class Browser {
           name = path.join(dir, name)
           return name
         })
-        // console.log({ names });
         const files = await Promise.all(names)
         const inputUploadHandle = await this.page.$(selector)
         inputUploadHandle.uploadFile(...files)
@@ -342,9 +326,10 @@ class Browser {
     })
     return this.socket
   }
-  sendScreenshot = async (delay = 1000) => {
+  sendScreenshot = async (delay = 200) => {
     try {
       if (!this._isEmpty(this.page) && !this.busy) {
+        if (this.socketHelper.getState()) return
         console.log('-----------send screenshot---------------->')
         let img = await this.BrowserActions.screenshot()
         this.busy = true
@@ -358,29 +343,41 @@ class Browser {
   }
   close() {}
 
-  async test(data) {
+  async test() {
     console.log('=======================  Page.test  ===================')
-
-    // await this.page.addScriptTag({
-    //   url: "https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js",
-    // });
-
     var lists =
-      '<label for="cars">Choose a car:</label>' +
       '<select name="cars" id="cars">' +
       '  <option value="volvo">Volvo</option>' +
       '  <option value="saab">Saab</option>' +
       '  <option value="mercedes">Mercedes</option>' +
       '  <option value="audi">Audi</option>' +
       '</select>'
+    try {
+      console.log(path.join(__dirname, 'ProxySelect.css'))
+      await this.page.addStyleTag({path: path.join(__dirname, 'ProxySelect.css')})
+      await this.page.addScriptTag({path: path.join(__dirname, 'ProxySelect.js')})
 
-    await this.page.evaluate((lists) => {
-      const input = "<input type = 'file' />"
-      document.write(lists)
-    }, lists)
-    // await this.modifySelect();
+      await this.page.evaluate((lists) => {
+        var wrapper = document.createElement('div')
+        wrapper.innerHTML = lists
+        var div = wrapper.firstChild
+        document.body.appendChild(div)
+        var selectNodes = document.getElementsByTagName('select')
+        console.log('------------------------>  select event listener')
 
-    // this.page = page;
+        for (var i = 0, len = selectNodes.length; i < len; i++) {
+          var selectNode = selectNodes[i]
+          console.log('====>', selectNode.hasAttribute('no-proxy-select'))
+          window.proxifySelect(selectNode)
+          console.log(selectNode)
+        }
+        console.log(selectNodes.length)
+        window.proxifyDynamicallyAddedSelects()
+      }, lists)
+    } catch (e) {
+      console.log(e)
+    }
+
   }
 }
 module.exports = Browser
