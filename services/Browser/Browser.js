@@ -3,13 +3,13 @@ const fs = require('fs')
 const path = require('path')
 const puppeteer = require('puppeteer-extra')
 
-const {installMouseHelper, sleep} = require('../../helper/installMouseHelper')
-
 const pageEvent = require('./PageEvent')
 const BrowserActions = require('./BrowserActions')
-const SocketHelper = require('../Socket/SocketHelper')
-const ConfigController = require('../../controllers/config.controller')
-const {proxifySelect, proxifyDynamicallyAddedSelects} = require('./ProxySelect')
+
+const getConfig = require('../../helper/ConfigHelper')
+const SocketHelper = require('../../helper/SocketHelper')
+const {installMouseHelper, sleep} = require('../../helper/installMouseHelper')
+
 class Browser {
   constructor(id) {
     this.id = id
@@ -19,23 +19,14 @@ class Browser {
     this.socketHelper = {}
   }
 
-  getConfig = async (req) => {
-    const response = await ConfigController.get(req)
-    if (response.response_code === false) {
-      this.socketHelper.sendFailureMessage('Get Config Error!')
-      throw 'Get config error'
-    }
-    const res = JSON.parse(response.data)
-    return res
-  }
-
   launchBrowser = async () => {
     try {
       console.log('====launch browser')
-      this.config = await this.getConfig({site: 'WIPO', tag: 'Browser'})
+      this.config = await getConfig({site: 'WIPO', tag: 'Browser'})
 
       this.browser = await puppeteer.launch(this.config.browser)
       this.page = await this.browser.newPage()
+      await page.setDefaultNavigationTimeout(60000)
 
       this.browser.on('disconnected', (data) => {
         console.log('browser_disconnected')
@@ -54,7 +45,7 @@ class Browser {
           console.log(this.page.url())
         }
       })
-      // setInterval(this.sendScreenshot, 1000, this)
+      setInterval(this.sendScreenshot, 1000, this)
       return true
     } catch (e) {
       console.log('Lanuch', e)
@@ -62,8 +53,8 @@ class Browser {
     }
   }
 
-  setHandlingPageEvent = async (page, socket) => {
-    return pageEvent(page, socket)
+  setHandlingPageEvent = async (page, socket, socketHelper) => {
+    return pageEvent(page, socket, socketHelper)
   }
 
   setSocket = async (socket) => {
@@ -72,10 +63,10 @@ class Browser {
       this.socket.disconnect()
     }
     this.socket = socket
-    this.page.removeAllListeners('request')
-    this.page = await this.setHandlingPageEvent(this.page, this.socket)
-
     this.socketHelper = new SocketHelper(socket)
+
+    this.page.removeAllListeners('request')
+    this.page = await this.setHandlingPageEvent(this.page, this.socket, this.socketHelper)
     await this.setSocketLogic()
     return this.socket
   }
@@ -100,18 +91,14 @@ class Browser {
           this.socket,
           this.config,
           this.browser,
-          puppeteer
+          this.socketHelper
         )
         let [result, message] = [true, 'Loaded!']
         if (this._isEmpty) {
           if (true || this.business != action) {
             this.socketHelper.sendMessage('send-resize', {})
-            const config = await this.getConfig({
+            const config = await getConfig({
               site: 'WIPO',
-              // tag: "LoginToGoogle",
-              // tag: "TestWithGitlab",
-              // tag: "LoginToWIPO",
-              // tag: "TestUploadWithGitlab",
               tag: 'Link',
             })
             this.scripts = [
@@ -128,8 +115,6 @@ class Browser {
             if (response.response_code === false) {
               this.socketHelper.sendFailureMessage(response.message)
             }
-            // this.test({});
-
             await installMouseHelper(this.page)
           }
           this.business = action
@@ -345,6 +330,7 @@ class Browser {
   sendScreenshot = async (delay = 1000) => {
     try {
       if (!this._isEmpty(this.page) && !this.busy) {
+        if (this.socketHelper.getState()) return
         console.log('-----------send screenshot---------------->')
         let img = await this.BrowserActions.screenshot()
         this.busy = true

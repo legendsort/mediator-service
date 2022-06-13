@@ -1,5 +1,5 @@
 /** @format */
-const SocketHelper = require('../Socket/SocketHelper')
+const SocketHelper = require('../../helper/SocketHelper')
 
 class URLPolicy {
   constructor(page, socket) {
@@ -62,8 +62,8 @@ class URLPolicy {
 
   filterAll = async () => {
     try {
-      console.log('Stop filter')
-      return
+      // console.log('Stop filter')
+      // return
       console.log('-----------------filterAll start-------------------')
       await this.filterATag(this.page)
       console.log('-----------------filterAll end---------------------')

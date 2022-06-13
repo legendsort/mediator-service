@@ -1,10 +1,8 @@
 /** @format */
-const SocketHelper = require('../Socket/SocketHelper')
 const path = require('path')
 const URLPolicy = require('../Security/URLPolicy')
 
-const pageEvent = async (page, socket) => {
-  const socketHelper = new SocketHelper(socket)
+const pageEvent = async (page, socket, socketHelper) => {
   const urlPolicy = new URLPolicy(page, socket)
   page.setRequestInterception(true)
   const handleRequest = (request) => {
@@ -20,8 +18,6 @@ const pageEvent = async (page, socket) => {
 
   // Emitted when the DOM is parsed and ready (without waiting for resources)
   page.on('domcontentloaded', () => {
-    // socketHelper.sendMessage("status", "loaded");
-
     console.log('loaded')
   })
 
@@ -31,6 +27,7 @@ const pageEvent = async (page, socket) => {
     await urlPolicy.filterAll()
     changeProxySelect()
     socketHelper.sendMessage('status', 'loaded')
+    this
   })
 
   // Emitted when the page attaches a frame
@@ -41,7 +38,6 @@ const pageEvent = async (page, socket) => {
   // Emitted when a frame within the page is navigated to a new URL
   page.on('framenavigated', async (frame) => {
     console.log('==========>frame navigated ', frame.url())
-
     try {
       await urlPolicy.filterAll()
     } catch (e) {
@@ -84,6 +80,7 @@ const pageEvent = async (page, socket) => {
     if (request.isNavigationRequest()) {
       console.log('===============>', request.url())
       socketHelper.sendMessage('status', 'loading')
+      this.status = {status: 'loading'}
     }
     handleRequest(request)
   })
@@ -91,14 +88,11 @@ const pageEvent = async (page, socket) => {
   // Emitted when a request, which is produced by the page, fails
   page.on('requestfailed', (request) => {
     console.log('====> request failed')
-
-    // socketHelper.sendFailureMessage("Request failed");
   })
 
   // Emitted when a request, which is produced by the page, finishes successfully
   page.on('requestfinished', async (request) => {
     console.log('====> request_finish')
-    // await urlPolicy.filterAll();
   })
 
   // Emitted when a response is received
@@ -122,17 +116,15 @@ const pageEvent = async (page, socket) => {
     console.log('Closed')
   })
 
-  // await page.exposeFunction('onCustomEvent', ({type, detail}) => {
-  //   console.log(`Event fired: ${type}, detail: ${detail}`)
-  // })
+  //change all select dom inside page as proxy-select
   changeProxySelect = async () => {
     try {
-      console.log(path.join(__dirname, 'ProxySelect.css'))
+      const url = page.url()
+      if (url === 'https://www.wipo.int/ipdl-lisbon/struct-search') return
       await page.addStyleTag({path: path.join(__dirname, 'ProxySelect.css')})
       await page.addScriptTag({path: path.join(__dirname, 'ProxySelect.js')})
       await page.evaluate(() => {
         var selectNodes = document.getElementsByTagName('select')
-        console.log('------------------------>  select event listener')
 
         for (var i = 0, len = selectNodes.length; i < len; i++) {
           var selectNode = selectNodes[i]
