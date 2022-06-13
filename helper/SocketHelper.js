@@ -1,7 +1,5 @@
 /** @format */
 
-const puppeteer = require('puppeteer-extra')
-
 class SocketHelper {
   constructor(socket) {
     this.socket = socket

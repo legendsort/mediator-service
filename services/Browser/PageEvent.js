@@ -85,7 +85,6 @@ const pageEvent = async (page, socket, socketHelper) => {
     if (request.isNavigationRequest()) {
       console.log('===============>', request.url())
       socketHelper.sendMessage('status', 'loading')
-      this.status = {status: 'loading'}
     }
     await handleRequest(request)
   })
@@ -145,49 +144,48 @@ const pageEvent = async (page, socket, socketHelper) => {
   await page.evaluateOnNewDocument(async () => {
     console.log('Evaluate document')
 
-    window.addEventListener('click', (e) => {
-      // get selector of element;
-      const getSelector = (elm) => {
-        try {
-          if (elm.tagName === 'BODY') return 'BODY'
-          const names = []
+    window.addEventListener(
+      'click',
+      (e) => {
+        T
+        // get selector of element;
+        const getSelector = (elm) => {
+          try {
+            if (elm.tagName === 'BODY') return 'BODY'
+            const names = []
 
-          while (elm.parentElement && elm.tagName !== 'BODY') {
-            if (elm.id && false) {
-              names.unshift('#' + elm.getAttribute('id')) // getAttribute, because `elm.id` could also return a child element with name "id"
-              break // Because ID should be unique, no more is needed. Remove the break, if you always want a full path.
-            } else {
+            while (elm.parentElement && elm.tagName !== 'BODY') {
               let c = 1,
                 e = elm
               for (; e.previousElementSibling; e = e.previousElementSibling, c++);
               names.unshift(elm.tagName + ':nth-child(' + c + ')')
+              elm = elm.parentElement
             }
-            elm = elm.parentElement
+            return names.join('>')
+          } catch (e) {
+            console.log(e)
+            return 'Error'
           }
-          return names.join('>')
-        } catch (e) {
-          console.log(e)
-          return 'Error'
         }
-      }
 
-      const type = e.target.type
-      // for upload
-      // if (type === "text") {
-      if (type === 'file') {
-        const selector = getSelector(e.target)
-        console.log(selector)
+        const type = e.target.type
+        // for upload
+        if (type === 'file') {
+          const selector = getSelector(e.target)
+          console.log(selector)
 
-        window.sendMessage('upload', {
-          response_code: true,
-          message: 'Click file choose button',
-          data: {selector: selector},
-        })
-        e.preventDefault()
-        e.stopPropagation()
-      }
-      return
-    })
+          window.sendMessage('upload', {
+            response_code: true,
+            message: 'Click file choose button',
+            data: {selector: selector},
+          })
+          e.preventDefault()
+          e.stopPropagation()
+        }
+        return
+      },
+      {once: true}
+    )
   })
   try {
     await page.exposeFunction('validateURL', urlPolicy.validateURL)

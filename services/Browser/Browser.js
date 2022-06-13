@@ -303,7 +303,6 @@ class Browser {
           name = path.join(dir, name)
           return name
         })
-        // console.log({ names });
         const files = await Promise.all(names)
         const inputUploadHandle = await this.page.$(selector)
         inputUploadHandle.uploadFile(...files)
@@ -346,11 +345,6 @@ class Browser {
 
   async test() {
     console.log('=======================  Page.test  ===================')
-
-    // await this.page.addScriptTag({
-    //   url: "https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js",
-    // });
-
     var lists =
       '<select name="cars" id="cars">' +
       '  <option value="volvo">Volvo</option>' +
@@ -362,11 +356,6 @@ class Browser {
       console.log(path.join(__dirname, 'ProxySelect.css'))
       await this.page.addStyleTag({path: path.join(__dirname, 'ProxySelect.css')})
       await this.page.addScriptTag({path: path.join(__dirname, 'ProxySelect.js')})
-      // await this.page.exposeFunction('proxifySelect', proxifySelect)
-      // await this.page.exposeFunction(
-      //   'proxifyDynamicallyAddedSelects',
-      //   proxifyDynamicallyAddedSelects
-      // )
 
       await this.page.evaluate((lists) => {
         var wrapper = document.createElement('div')
@@ -389,9 +378,6 @@ class Browser {
       console.log(e)
     }
 
-    // await this.modifySelect();
-
-    // this.page = page;
   }
 }
 module.exports = Browser
