@@ -9,6 +9,7 @@ class SocketHelper {
   }
 
   getState = () => {
+    console.log('---------------------------->', this.busy)
     return this.busy
   }
   sendMessage = (event, message) => {

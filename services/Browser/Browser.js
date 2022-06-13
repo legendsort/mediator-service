@@ -26,7 +26,7 @@ class Browser {
 
       this.browser = await puppeteer.launch(this.config.browser)
       this.page = await this.browser.newPage()
-      await page.setDefaultNavigationTimeout(60000)
+      await this.page.setDefaultNavigationTimeout(60000)
 
       this.browser.on('disconnected', (data) => {
         console.log('browser_disconnected')
@@ -45,7 +45,7 @@ class Browser {
           console.log(this.page.url())
         }
       })
-      setInterval(this.sendScreenshot, 1000, this)
+      setInterval(() => this.sendScreenshot(1000), 2000, this)
       return true
     } catch (e) {
       console.log('Lanuch', e)
@@ -135,7 +135,7 @@ class Browser {
 
     this.socket.on('mouse-move', async (data) => {
       this.BrowserActions.mouseMove(data.point.x, data.point.y)
-      await this.sendScreenshot(2000)
+      // await this.sendScreenshot(2000)
     })
 
     this.socket.on('mouse-click', async (data) => {
@@ -186,7 +186,7 @@ class Browser {
     this.socket.on('mouse-wheel', async (data) => {
       try {
         await this.BrowserActions.setWheel(data.x, data.y)
-        await this.sendScreenshot()
+        await this.sendScreenshot(1000)
       } catch (error) {}
     })
 
@@ -327,7 +327,7 @@ class Browser {
     })
     return this.socket
   }
-  sendScreenshot = async (delay = 1000) => {
+  sendScreenshot = async (delay = 200) => {
     try {
       if (!this._isEmpty(this.page) && !this.busy) {
         if (this.socketHelper.getState()) return

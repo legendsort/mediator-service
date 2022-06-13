@@ -3,15 +3,19 @@ const path = require('path')
 const URLPolicy = require('../Security/URLPolicy')
 
 const pageEvent = async (page, socket, socketHelper) => {
-  const urlPolicy = new URLPolicy(page, socket)
+  const urlPolicy = new URLPolicy(page, socket, {site: 'WIPO', tag: 'AllowURL'})
   page.setRequestInterception(true)
-  const handleRequest = (request) => {
+  const handleRequest = async (request) => {
     const url = request.url()
-    console.log('----> New request: ', request.resourceType())
-    if (urlPolicy.validateURL(url) == true) {
+    const type = request.resourceType()
+    console.log('-------------------------------> New request: ', type, urlPolicy.validateURL(url))
+    if (type !== 'document' || urlPolicy.validateURL(url) == true) {
       request.continue()
     } else {
-      console.log('aborted')
+      if (type === 'document') {
+        socketHelper.sendFailureMessage('Not valid URL!!!')
+        await page.goBack({waitUntil: 'networkidle0'})
+      } else console.log('aborted')
       request.abort()
     }
   }
@@ -27,7 +31,6 @@ const pageEvent = async (page, socket, socketHelper) => {
     await urlPolicy.filterAll()
     changeProxySelect()
     socketHelper.sendMessage('status', 'loaded')
-    this
   })
 
   // Emitted when the page attaches a frame
@@ -39,6 +42,8 @@ const pageEvent = async (page, socket, socketHelper) => {
   page.on('framenavigated', async (frame) => {
     console.log('==========>frame navigated ', frame.url())
     try {
+      socketHelper.sendMessage('status', 'loaded')
+
       await urlPolicy.filterAll()
     } catch (e) {
       console.log(e)
@@ -76,13 +81,13 @@ const pageEvent = async (page, socket, socketHelper) => {
   })
 
   // Emitted when the page produces a request
-  page.on('request', (request) => {
+  page.on('request', async (request) => {
     if (request.isNavigationRequest()) {
       console.log('===============>', request.url())
       socketHelper.sendMessage('status', 'loading')
       this.status = {status: 'loading'}
     }
-    handleRequest(request)
+    await handleRequest(request)
   })
 
   // Emitted when a request, which is produced by the page, fails
@@ -92,12 +97,12 @@ const pageEvent = async (page, socket, socketHelper) => {
 
   // Emitted when a request, which is produced by the page, finishes successfully
   page.on('requestfinished', async (request) => {
-    console.log('====> request_finish')
+    // console.log('====> request_finish')
   })
 
   // Emitted when a response is received
   page.on('response', (response) => {
-    console.log('response')
+    // console.log('response')
   })
 
   // Emitted when the page creates a dedicated WebWorker

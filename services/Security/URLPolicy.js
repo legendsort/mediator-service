@@ -1,18 +1,21 @@
 /** @format */
 const SocketHelper = require('../../helper/SocketHelper')
+const getConfig = require('../../helper/ConfigHelper')
 
 class URLPolicy {
-  constructor(page, socket) {
-    this.allowUrlList = []
-    this.denyList = []
+  constructor(page, socket, info) {
     this.page = page
     this.socketHelper = new SocketHelper(socket)
-    this.socketHelper.sendSuccessMessage('URL POLICY')
+    this.allowUrlList = []
+    this.denyList = []
+
+    getConfig(info).then((res) => {
+      this.allowUrlList = res
+    })
   }
 
   validateURL = (url) => {
-    let res = true
-    this.denyList = ['http://gitlab.local.com/help', 'http://gitlab.local.com/explore']
+    let res = false
 
     this.allowUrlList.forEach((aurl) => {
       if (url.indexOf(aurl) === 0) res = true
