@@ -3,7 +3,7 @@ const path = require('path')
 const URLPolicy = require('../Security/URLPolicy')
 
 const pageEvent = async (page, socket, socketHelper) => {
-  const urlPolicy = new URLPolicy(page, socket, {site: 'WIPO', tag: 'AllowURL'})
+  const urlPolicy = new URLPolicy(page, socket, {site: 'wipo', tag: 'AllowURL'})
   page.setRequestInterception(true)
   const handleRequest = async (request) => {
     const url = request.url()

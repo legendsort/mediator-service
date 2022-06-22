@@ -22,7 +22,7 @@ class Browser {
   launchBrowser = async () => {
     try {
       console.log('====launch browser')
-      this.config = await getConfig({site: 'WIPO', tag: 'Browser'})
+      this.config = await getConfig({site: 'wipo', tag: 'Browser'})
 
       this.browser = await puppeteer.launch(this.config.browser)
       this.page = await this.browser.newPage()
@@ -85,7 +85,8 @@ class Browser {
   setSocketLogic = async () => {
     this.socket.on('start-page', async (data) => {
       try {
-        const {action, viewport} = data
+        const {params, viewport} = data
+        this.type = params.type
         this.BrowserActions = new BrowserActions(
           this.page,
           this.socket,
@@ -95,12 +96,16 @@ class Browser {
         )
         let [result, message] = [true, 'Loaded!']
         if (this._isEmpty) {
-          if (true || this.business != action) {
+          if (true || this.business != params) {
             this.socketHelper.sendMessage('send-resize', {})
+            const {type, action} = params
+            console.log(type, action)
+
             const config = await getConfig({
-              site: 'WIPO',
+              site: type,
               tag: 'Link',
             })
+            console.log(config)
             this.scripts = [
               {
                 type: 'visit',
@@ -115,9 +120,9 @@ class Browser {
             if (response.response_code === false) {
               this.socketHelper.sendFailureMessage(response.message)
             }
-            await installMouseHelper(this.page)
+            // await installMouseHelper(this.page)
           }
-          this.business = action
+          this.business = params
         }
 
         if (result) {
@@ -377,7 +382,6 @@ class Browser {
     } catch (e) {
       console.log(e)
     }
-
   }
 }
 module.exports = Browser
