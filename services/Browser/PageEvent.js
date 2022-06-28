@@ -147,7 +147,6 @@ const pageEvent = async (page, socket, socketHelper) => {
     window.addEventListener(
       'click',
       (e) => {
-        T
         // get selector of element;
         const getSelector = (elm) => {
           try {
