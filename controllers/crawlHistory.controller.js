@@ -42,18 +42,23 @@ module.exports = {
    * response param: [data, pageNumber, pageSize, totalPages]
    */
   fetch: async (req, res) => {
-    let [pageSize, pageNumber] = [req.query.pageSize, req.query.pageNumber]
-
+    const {pageSize, pageNumber, id, message, status, start_time, end_time} = req.query
     if (pageSize === undefined) pageSize = 10
     if (pageNumber === undefined) pageNumber = 0
+    let query = {}
+    if (status) query.status = {$regex: status, $options: 'i'}
+    if (message) query.message = {$regex: message, $options: 'i'}
+    if (start_time && end_time)
+      query.time = {
+        $gte: start_time,
+        $lt: end_time,
+      }
     const pageOptions = {
       page: pageNumber,
       limit: pageSize,
-      sort: {
-        time: -1,
-      },
     }
-    crawlHistoryModel.paginate({}, pageOptions, (err, result) => {
+
+    crawlHistoryModel.paginate(query, pageOptions, (err, result) => {
       if (err) return sendResponse(res, 500, false, 'Error when paginating crawl history', err)
       const data = {
         data: result.docs,
