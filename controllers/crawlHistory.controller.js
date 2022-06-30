@@ -1,5 +1,5 @@
 /** @format */
-var crawlHistoryModel = require("../models/crawlHistory.model");
+var crawlHistoryModel = require('../models/crawlHistory.model')
 
 /**
  * crawlHistoryController.js
@@ -7,21 +7,20 @@ var crawlHistoryModel = require("../models/crawlHistory.model");
  * @description :: Server-side logic for managing crawl history.
  */
 
-var {sendResponse} = require("./ControllerHepler");
-
+var {sendResponse} = require('./ControllerHepler')
 
 module.exports = {
   /**
    * crawlHistoryController.create()
    */
   create: async (req, res) => {
-    const history = req.body.history;
-    const newHistory = new crawlHistoryModel (history)
+    const history = req.body.history
+    const newHistory = new crawlHistoryModel(history)
 
     newHistory.save(function (err, newHistory) {
-      if (err) return sendResponse(res, 500, false, "Error when saving crawl history.", err);
-      return sendResponse(res, 200, true, "Success when saving crawl history.", newHistory);
-    });
+      if (err) return sendResponse(res, 500, false, 'Error when saving crawl history.', err)
+      return sendResponse(res, 200, true, 'Success when saving crawl history.', newHistory)
+    })
   },
   /**
    * crawlHistoryController.fetchAll()
@@ -31,9 +30,9 @@ module.exports = {
    */
   fetchAll: async (req, res) => {
     crawlHistoryModel.find({}, function (err, crawlHistory) {
-      if (err) return sendResponse(res, 500, false, "Error when fetching all crawl history", err);
-      return sendResponse(res, 200, true, "Success when fetching all crawl history", crawlHistory);
-    });
+      if (err) return sendResponse(res, 500, false, 'Error when fetching all crawl history', err)
+      return sendResponse(res, 200, true, 'Success when fetching all crawl history', crawlHistory)
+    })
   },
 
   /**
@@ -43,25 +42,31 @@ module.exports = {
    * response param: [data, pageNumber, pageSize, totalPages]
    */
   fetch: async (req, res) => {
-    let [pageSize, pageNumber] = [req.query.pageSize, req.query.pageNumber];
-
-    if(pageSize === undefined) pageSize = 10;
-    if(pageNumber === undefined) pageNumber = 0;
+    const {pageSize, pageNumber, id, message, status, start_time, end_time} = req.query
+    if (pageSize === undefined) pageSize = 10
+    if (pageNumber === undefined) pageNumber = 0
+    let query = {}
+    if (status) query.status = {$regex: status, $options: 'i'}
+    if (message) query.message = {$regex: message, $options: 'i'}
+    if (start_time && end_time)
+      query.time = {
+        $gte: start_time,
+        $lt: end_time,
+      }
     const pageOptions = {
       page: pageNumber,
       limit: pageSize,
     }
-    crawlHistoryModel.paginate({}, pageOptions, (err, result) => {
-      if(err) return sendResponse(res, 500, false, "Error when paginating crawl history", err);
+
+    crawlHistoryModel.paginate(query, pageOptions, (err, result) => {
+      if (err) return sendResponse(res, 500, false, 'Error when paginating crawl history', err)
       const data = {
         data: result.docs,
         pageNumber: pageNumber,
         pageSize: pageSize,
-        totalPages: result.totalPages
+        totalPages: result.totalPages,
       }
-      return sendResponse(res, 200, true, "Success paginating", data, true)
+      return sendResponse(res, 200, true, 'Success paginating', data, true)
     })
-
   },
-
-};
+}
