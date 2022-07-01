@@ -203,17 +203,20 @@ module.exports = {
     try {
       const ftpService = await getFtpService(req)
       const srcPath = req.body.srcPath
-      const uploaded_file = req.files.file
-      const uploadPath = req.app.get('public-dir') + '/ftp/upload/' + uploaded_file.name
-      await uploaded_file.mv(uploadPath)
-      await ftpService.upload(uploadPath, srcPath)
+      const files = req.files.file
+      console.log(files)
+      for (const file of files) {
+        const uploadPath = req.app.get('public-dir') + '/ftp/upload/' + file.name
+        await file.mv(uploadPath)
+        await ftpService.upload(uploadPath, srcPath + file.name)
 
-      fs.unlinkSync(uploadPath, {
-        force: true,
-      })
+        fs.unlinkSync(uploadPath, {
+          force: true,
+        })
+      }
       return sendResponse(res, 200, true, 'upload file succeed', {
-        uploadPath: uploadPath,
-        name: req.files.file.name,
+        uploadPath: '/',
+        name: files.map((file) => file.name),
       })
     } catch (e) {
       console.log('upload file error!\n', e)
