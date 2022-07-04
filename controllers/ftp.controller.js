@@ -203,7 +203,8 @@ module.exports = {
     try {
       const ftpService = await getFtpService(req)
       const srcPath = req.body.srcPath
-      const files = req.files.file
+      let files = req.files.file
+      if (!Array.isArray(files)) files = [files]
       console.log(files)
       for (const file of files) {
         const uploadPath = req.app.get('public-dir') + '/ftp/upload/' + file.name
