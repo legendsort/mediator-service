@@ -182,7 +182,7 @@ module.exports = {
       const items = req.body.srcPath
       const target = req.body.dstPath
       const tmpPath = `${req.app.get('public-dir')}/ftp/temp/${target}/`
-      const dstPath = `${req.app.get('public-dir')}/ftp/upload/`
+      const dstPath = `${req.app.get('public-dir')}/ftp/upload/` //ftp download location
       if (items.length > 0) {
         for (const item of items) {
           await ftpService.download(item, tmpPath)

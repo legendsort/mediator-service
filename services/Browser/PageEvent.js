@@ -1,6 +1,7 @@
 /** @format */
 const path = require('path')
 const URLPolicy = require('../Security/URLPolicy')
+const doFilter = false
 
 const pageEvent = async (page, socket, socketHelper) => {
   const urlPolicy = new URLPolicy(page, socket, {site: 'wipo', tag: 'AllowURL'})
@@ -9,6 +10,10 @@ const pageEvent = async (page, socket, socketHelper) => {
     const url = request.url()
     const type = request.resourceType()
     console.log('-------------------------------> New request: ', type, urlPolicy.validateURL(url))
+    if (doFilter === false) {
+      request.continue()
+      return
+    }
     if (type !== 'document' || urlPolicy.validateURL(url) == true) {
       request.continue()
     } else {
@@ -21,15 +26,56 @@ const pageEvent = async (page, socket, socketHelper) => {
   }
 
   // Emitted when the DOM is parsed and ready (without waiting for resources)
-  page.on('domcontentloaded', () => {
-    console.log('loaded')
+  page.on('domcontentloaded', async () => {
+    console.log('==========================================>loaded')
+    await page.evaluate(() => {
+      console.log('==================================================>', 'here')
+      window.addEventListener('click', (e) => {
+        // get selector of element;
+        const getSelector = (elm) => {
+          try {
+            if (elm.tagName === 'BODY') return 'BODY'
+            const names = []
+
+            while (elm.parentElement && elm.tagName !== 'BODY') {
+              let c = 1,
+                e = elm
+              for (; e.previousElementSibling; e = e.previousElementSibling, c++);
+              names.unshift(elm.tagName + ':nth-child(' + c + ')')
+              elm = elm.parentElement
+            }
+            return names.join('>')
+          } catch (e) {
+            console.log(e)
+            return 'Error'
+          }
+        }
+        console.log('++++++++++++++++++++++++++++++++++++Clicked')
+        const type = e.target.type
+        // for upload
+        if (type === 'file') {
+          const selector = getSelector(e.target)
+          console.log(selector)
+
+          window.sendMessage('upload', {
+            response_code: true,
+            message: 'Click file choose button',
+            data: {selector: selector},
+          })
+          e.preventDefault()
+          e.stopPropagation()
+        }
+        return
+      })
+    })
   })
 
   // Emitted when the page is fully loaded
   page.on('load', async () => {
     console.log('fully loaded')
-    await urlPolicy.filterAll()
+    if (doFilter) await urlPolicy.filterAll()
     changeProxySelect()
+
     socketHelper.sendMessage('status', 'loaded')
   })
 
@@ -44,7 +90,7 @@ const pageEvent = async (page, socket, socketHelper) => {
     try {
       socketHelper.sendMessage('status', 'loaded')
 
-      await urlPolicy.filterAll()
+      if (doFilter) await urlPolicy.filterAll()
     } catch (e) {
       console.log(e)
     }
@@ -70,7 +116,9 @@ const pageEvent = async (page, socket, socketHelper) => {
 
   // Emitted when a script within the page uses `alert`, `prompt`, `confirm` or `beforeunload`
   page.on('dialog', async (dialog) => {
-    console.log('dialog')
+    console.log('dialog', dialog.message())
+
+    await dialog.accept()
   })
   page.on('filedialog', (data) => {
     console.log('file dialog')
@@ -141,51 +189,6 @@ const pageEvent = async (page, socket, socketHelper) => {
     }
   }
 
-  await page.evaluateOnNewDocument(async () => {
-    console.log('Evaluate document')
-
-    window.addEventListener(
-      'click',
-      (e) => {
-        // get selector of element;
-        const getSelector = (elm) => {
-          try {
-            if (elm.tagName === 'BODY') return 'BODY'
-            const names = []
-
-            while (elm.parentElement && elm.tagName !== 'BODY') {
-              let c = 1,
-                e = elm
-              for (; e.previousElementSibling; e = e.previousElementSibling, c++);
-              names.unshift(elm.tagName + ':nth-child(' + c + ')')
-              elm = elm.parentElement
-            }
-            return names.join('>')
-          } catch (e) {
-            console.log(e)
-            return 'Error'
-          }
-        }
-
-        const type = e.target.type
-        // for upload
-        if (type === 'file') {
-          const selector = getSelector(e.target)
-          console.log(selector)
-
-          window.sendMessage('upload', {
-            response_code: true,
-            message: 'Click file choose button',
-            data: {selector: selector},
-          })
-          e.preventDefault()
-          e.stopPropagation()
-        }
-        return
-      },
-      {once: true}
-    )
-  })
   try {
     await page.exposeFunction('validateURL', urlPolicy.validateURL)
     await page.exposeFunction('sendMessage', socketHelper.sendMessage)
