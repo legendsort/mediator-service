@@ -113,6 +113,27 @@ class Browser {
                   url: config[action],
                 },
               },
+              {
+                type: 'input',
+                action: {
+                  selector: 'edit-name',
+                  value: 'markov_1120',
+                },
+              },
+              {
+                type: 'input',
+                action: {
+                  selector: 'edit-pass',
+                  value: 'P@ssion1120',
+                },
+              },
+              {
+                type: 'click',
+                action: {
+                  selector: 'edit-submit',
+                  value: 'P@ssion1120',
+                },
+              },
             ]
             console.log(this.scripts)
             const response = await this.BrowserActions.execute(this.scripts)
