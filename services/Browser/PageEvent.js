@@ -116,7 +116,9 @@ const pageEvent = async (page, socket, socketHelper) => {
 
   // Emitted when a script within the page uses `alert`, `prompt`, `confirm` or `beforeunload`
   page.on('dialog', async (dialog) => {
-    console.log('dialog')
+    console.log('dialog', dialog.message())
+
+    await dialog.accept()
   })
   page.on('filedialog', (data) => {
     console.log('file dialog')
