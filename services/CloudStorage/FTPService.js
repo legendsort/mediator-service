@@ -5,11 +5,35 @@ const fs = require('fs')
 
 class FTPService {
   constructor() {
-    this.client = {}
-    this.user = null
+    this.manager = {}
   }
 
-  getClient = () => {}
+  async getClient(host, user, password) {
+    try {
+      const userInfo = {
+        host: host,
+        user: user,
+        password: password,
+        // secure: true,
+      }
+      if (this.manager[user] == null || this.manager[user].client.closed) {
+        console.log('no such user so that create new client')
+        const client = new ftp.Client()
+        // client.ftp.verbose = true;
+        await client.access(userInfo)
+        this.manager[user] = new FTPClient(client)
+      }
+      return this.manager[user]
+    } catch (error) {
+      console.error('get ftp service error!\n', error)
+      throw error
+    }
+  }
+}
+class FTPClient {
+  constructor(client) {
+    this.client = client
+  }
 
   checkValidPath = (filePath) => {
     return filePath === path.basename(filePath)
@@ -43,30 +67,6 @@ class FTPService {
     }
   }
 
-  async getService(host, user, password) {
-    try {
-      const newUser = {
-        host: host,
-        user: user,
-        password: password,
-        // secure: true,
-      }
-
-      if (this.user == null) {
-        const client = new ftp.Client()
-        // client.ftp.verbose = true;
-        await client.access(newUser)
-        this.client = client
-        this.user = newUser
-      }
-      if (this.client == null) {
-        throw 'get ftp client error'
-      }
-    } catch (error) {
-      console.error('login server error!\n', error)
-      throw error
-    }
-  }
   async getList(path) {
     try {
       return await this.client.list(path)
