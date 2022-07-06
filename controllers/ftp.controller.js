@@ -7,7 +7,7 @@ const archiver = require('archiver')
 
 const path = require('path')
 
-const getFtpService = async (req) => {
+const getFtpClient = async (req) => {
   const ftpService = req.app.get('ftp-service')
 
   const username = req.body.username || process.env.FTP_USER
@@ -23,8 +23,7 @@ const getFtpService = async (req) => {
     throw 'service database error'
   }
   if (typeof cloudInfo !== undefined && cloudInfo !== null) {
-    await ftpService.getService(cloudInfo.url, cloudInfo.username, cloudInfo.password)
-    return ftpService
+    return await ftpService.getClient(cloudInfo.url, cloudInfo.username, cloudInfo.password)
   }
   throw 'cannot login to ftp server dut to database error'
 }
@@ -68,7 +67,7 @@ module.exports = {
    */
   list: async (req, res) => {
     try {
-      const ftpService = await getFtpService(req)
+      const ftpService = await getFtpClient(req)
       const path = req.query.path
       const ans = await ftpService.getList(path)
       return sendResponse(res, 200, true, 'get list succeed', ans)
@@ -83,7 +82,7 @@ module.exports = {
    */
   copy: async (req, res) => {
     try {
-      const ftpService = await getFtpService(req)
+      const ftpService = await getFtpClient(req)
       const items = req.body.srcPath
       const dstPath = req.body.dstPath
 
@@ -122,7 +121,7 @@ module.exports = {
    */
   move: async (req, res) => {
     try {
-      const ftpService = await getFtpService(req)
+      const ftpService = await getFtpClient(req)
       const srcPath = req.body.srcPath
       const dstPath = req.body.dstPath
       const tmpPath = `${req.app.get('public-dir')}\\ftp\\upload\\${srcPath}`
@@ -148,7 +147,7 @@ module.exports = {
    */
   rename: async (req, res) => {
     try {
-      const ftpService = await getFtpService(req)
+      const ftpService = await getFtpClient(req)
       const srcPath = req.body.srcPath
       const dstPath = req.body.dstPath
 
@@ -178,7 +177,7 @@ module.exports = {
    */
   download: async (req, res) => {
     try {
-      const ftpService = await getFtpService(req)
+      const ftpService = await getFtpClient(req)
       const items = req.body.srcPath
       const target = req.body.dstPath
       const tmpPath = `${req.app.get('public-dir')}/ftp/temp/${target}/`
@@ -201,7 +200,7 @@ module.exports = {
    */
   upload: async (req, res) => {
     try {
-      const ftpService = await getFtpService(req)
+      const ftpService = await getFtpClient(req)
       const srcPath = req.body.srcPath
       let files = req.files.file
       if (!Array.isArray(files)) files = [files]
@@ -230,7 +229,7 @@ module.exports = {
    */
   remove: async (req, res) => {
     try {
-      const ftpService = await getFtpService(req)
+      const ftpService = await getFtpClient(req)
       const items = req.body.path
       if (items.length > 0) {
         for (const item of items) {
