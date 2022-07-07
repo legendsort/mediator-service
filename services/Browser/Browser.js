@@ -17,6 +17,7 @@ class Browser {
     this.business = null
     this.busy = false
     this.socketHelper = {}
+    this.screenShotInterval = {}
   }
 
   launchBrowser = async () => {
@@ -45,7 +46,6 @@ class Browser {
           console.log(this.page.url())
         }
       })
-      setInterval(() => this.sendScreenshot(1000), 2000, this)
       return true
     } catch (e) {
       console.log('Lanuch', e)
@@ -113,36 +113,18 @@ class Browser {
                   url: config[action],
                 },
               },
-              {
-                type: 'input',
-                action: {
-                  selector: 'edit-name',
-                  value: 'markov_1120',
-                },
-              },
-              {
-                type: 'input',
-                action: {
-                  selector: 'edit-pass',
-                  value: 'P@ssion1120',
-                },
-              },
-              {
-                type: 'click',
-                action: {
-                  selector: 'edit-submit',
-                  value: 'P@ssion1120',
-                },
-              },
             ]
-            console.log(this.scripts)
             const response = await this.BrowserActions.execute(this.scripts)
             console.log(response)
             if (response.response_code === false) {
               this.socketHelper.sendFailureMessage(response.message)
             }
+
             // await installMouseHelper(this.page)
           }
+          console.log('=====start screenshot====')
+          clearInterval(this.screenShotInterval)
+          this.screenShotInterval = setInterval(() => this.sendScreenshot(1000), 2000, this)
           this.business = params
         }
 
@@ -350,7 +332,16 @@ class Browser {
         console.log(e)
       }
     })
-    return this.socket
+
+    this.socket.on('stop-screenshot', async () => {
+      console.log('Stop - screenshot')
+      try {
+        clearInterval(this.screenShotInterval)
+      } catch (e) {
+        console.log('Stop screenshot error')
+        console.log(e)
+      }
+    })
   }
   sendScreenshot = async (delay = 200) => {
     try {
