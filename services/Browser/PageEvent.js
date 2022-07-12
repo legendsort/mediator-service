@@ -30,6 +30,7 @@ const pageEvent = async (page, socket, socketHelper) => {
     console.log('==========================================>loaded')
     await page.evaluate(() => {
       console.log('==================================================>', 'here')
+      window.removeEventListener('click')
       window.addEventListener('click', (e) => {
         // get selector of element;
         const getSelector = (elm) => {
@@ -50,7 +51,6 @@ const pageEvent = async (page, socket, socketHelper) => {
             return 'Error'
           }
         }
-        console.log('++++++++++++++++++++++++++++++++++++Clicked')
         const type = e.target.type
         // for upload
         if (type === 'file') {

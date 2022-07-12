@@ -129,7 +129,7 @@ class Browser {
           await this.BrowserActions.setViewport(viewport.width, viewport.height)
           console.log('=====start screenshot====')
           clearInterval(this.screenShotInterval)
-          this.screenShotInterval = setInterval(() => this.sendScreenshot(1000), 2000, this)
+          this.screenShotInterval = setInterval(() => this.sendScreenshot(), 2000, this)
           this.business = params
         } else {
           this.socketHelper.sendFailureMessage(message)
@@ -199,7 +199,7 @@ class Browser {
           this.BrowserActions.deleteWord({})
           break
       }
-      await this.sendScreenshot()
+      await this.sendScreenshot(0)
     })
 
     this.socket.on('set-viewport', async (data) => {
@@ -212,7 +212,7 @@ class Browser {
     this.socket.on('mouse-wheel', async (data) => {
       try {
         await this.BrowserActions.setWheel(data.x, data.y)
-        await this.sendScreenshot(1000)
+        await this.sendScreenshot()
       } catch (error) {}
     })
 
