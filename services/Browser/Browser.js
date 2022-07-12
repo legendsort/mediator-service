@@ -179,8 +179,27 @@ class Browser {
     })
 
     this.socket.on('keyEvent', async (data) => {
-      if (data.type === 'singleKeyDown') await this.BrowserActions.keyPress(data.key)
-      if (data.type === 'selectAll') await this.BrowserActions.selectAll()
+      switch (data.type) {
+        case 'singleKeyDown':
+          await this.BrowserActions.keyPress(data.key)
+          break
+        case 'selectAll':
+          this.BrowserActions.selectAll()
+          break
+        case 'copy':
+          this.BrowserActions.copy({})
+          break
+          case 'cut':
+          this.BrowserActions.cut({})
+            break
+          
+          case 'paste':
+          this.BrowserActions.paste({})
+          break
+        case 'deleteword':
+          this.BrowserActions.deleteWord({})
+          break
+      }
       await this.sendScreenshot()
     })
 

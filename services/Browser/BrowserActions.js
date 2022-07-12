@@ -192,6 +192,16 @@ class BrowserActions {
     }
   }
 
+  cut = async () => {
+    if (!this._isEmpty(this.page)) {
+      await this.page.keyboard.down('Control')
+      await this.page.keyboard.press('KeyX')
+      await this.page.keyboard.up('Control')
+    } else {
+      console.log('deleteword   failed !')
+    }
+  }
+
   getData = async (action) => {
     const selector = action.selector
     console.log({selector})
