@@ -9,7 +9,7 @@ const pageEvent = async (page, socket, socketHelper) => {
   const handleRequest = async (request) => {
     const url = request.url()
     const type = request.resourceType()
-    console.log('-------------------------------> New request: ', type, urlPolicy.validateURL(url))
+    // console.log('-------------------------------> New request: ', type, urlPolicy.validateURL(url))
     if (doFilter === false) {
       request.continue()
       return

@@ -115,23 +115,22 @@ class Browser {
               },
             ]
             const response = await this.BrowserActions.execute(this.scripts)
-            console.log(response)
+            result = response.response_code
             if (response.response_code === false) {
               this.socketHelper.sendFailureMessage(response.message)
             }
 
             // await installMouseHelper(this.page)
           }
-          console.log('=====start screenshot====')
-          clearInterval(this.screenShotInterval)
-          this.screenShotInterval = setInterval(() => this.sendScreenshot(1000), 2000, this)
-          this.business = params
         }
 
         if (result) {
           console.log(viewport.width, viewport.height)
           await this.BrowserActions.setViewport(viewport.width, viewport.height)
-          this.sendScreenshot()
+          console.log('=====start screenshot====')
+          clearInterval(this.screenShotInterval)
+          this.screenShotInterval = setInterval(() => this.sendScreenshot(1000), 2000, this)
+          this.business = params
         } else {
           this.socketHelper.sendFailureMessage(message)
         }
@@ -189,11 +188,11 @@ class Browser {
         case 'copy':
           this.BrowserActions.copy({})
           break
-          case 'cut':
+        case 'cut':
           this.BrowserActions.cut({})
-            break
-          
-          case 'paste':
+          break
+
+        case 'paste':
           this.BrowserActions.paste({})
           break
         case 'deleteword':
