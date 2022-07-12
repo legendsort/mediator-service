@@ -115,23 +115,22 @@ class Browser {
               },
             ]
             const response = await this.BrowserActions.execute(this.scripts)
-            console.log(response)
+            result = response.response_code
             if (response.response_code === false) {
               this.socketHelper.sendFailureMessage(response.message)
             }
 
             // await installMouseHelper(this.page)
           }
-          console.log('=====start screenshot====')
-          clearInterval(this.screenShotInterval)
-          this.screenShotInterval = setInterval(() => this.sendScreenshot(1000), 2000, this)
-          this.business = params
         }
 
         if (result) {
           console.log(viewport.width, viewport.height)
           await this.BrowserActions.setViewport(viewport.width, viewport.height)
-          this.sendScreenshot()
+          console.log('=====start screenshot====')
+          clearInterval(this.screenShotInterval)
+          this.screenShotInterval = setInterval(() => this.sendScreenshot(), 2000, this)
+          this.business = params
         } else {
           this.socketHelper.sendFailureMessage(message)
         }
@@ -179,9 +178,28 @@ class Browser {
     })
 
     this.socket.on('keyEvent', async (data) => {
-      if (data.type === 'singleKeyDown') await this.BrowserActions.keyPress(data.key)
-      if (data.type === 'selectAll') await this.BrowserActions.selectAll()
-      await this.sendScreenshot()
+      switch (data.type) {
+        case 'singleKeyDown':
+          await this.BrowserActions.keyPress(data.key)
+          break
+        case 'selectAll':
+          this.BrowserActions.selectAll()
+          break
+        case 'copy':
+          this.BrowserActions.copy({})
+          break
+        case 'cut':
+          this.BrowserActions.cut({})
+          break
+
+        case 'paste':
+          this.BrowserActions.paste({})
+          break
+        case 'deleteword':
+          this.BrowserActions.deleteWord({})
+          break
+      }
+      await this.sendScreenshot(0)
     })
 
     this.socket.on('set-viewport', async (data) => {
@@ -194,7 +212,7 @@ class Browser {
     this.socket.on('mouse-wheel', async (data) => {
       try {
         await this.BrowserActions.setWheel(data.x, data.y)
-        await this.sendScreenshot(1000)
+        await this.sendScreenshot()
       } catch (error) {}
     })
 
