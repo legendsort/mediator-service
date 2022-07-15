@@ -56,6 +56,7 @@ module.exports = {
     const pageOptions = {
       page: pageNumber,
       limit: pageSize,
+      sort: {time: -1},
     }
 
     crawlHistoryModel.paginate(query, pageOptions, (err, result) => {
