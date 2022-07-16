@@ -355,6 +355,7 @@ class Browser {
       console.log('Stop - screenshot')
       try {
         clearInterval(this.screenShotInterval)
+        this.page.removeAllListeners('request')
       } catch (e) {
         console.log('Stop screenshot error')
         console.log(e)
