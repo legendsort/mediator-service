@@ -122,9 +122,9 @@ const pageEvent = async (page, socket, socketHelper) => {
   // Emitted when a frame within the page is navigated to a new URL
   page.on('framenavigated', async (frame) => {
     console.log('==========>frame navigated ', frame.url())
-    if (frame.url() === 'chrome-error://chromewebdata/') {
-      socketHelper.sendFailureMessage('Internet connection error')
-    }
+    // if (frame.url() === 'chrome-error://chromewebdata/') {
+    //   socketHelper.sendM('Internet connection error')
+    // }
     try {
       socketHelper.sendMessage('status', 'loaded')
 
