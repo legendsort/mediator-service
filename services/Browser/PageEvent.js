@@ -30,6 +30,42 @@ const pageEvent = async (page, socket, socketHelper) => {
     console.log('==========================================>loaded')
     await page.evaluate(() => {
       console.log('==================================================>', 'here')
+      window.removeEventListener('click', (e) => {
+        // get selector of element;
+        const getSelector = (elm) => {
+          try {
+            if (elm.tagName === 'BODY') return 'BODY'
+            const names = []
+
+            while (elm.parentElement && elm.tagName !== 'BODY') {
+              let c = 1,
+                e = elm
+              for (; e.previousElementSibling; e = e.previousElementSibling, c++);
+              names.unshift(elm.tagName + ':nth-child(' + c + ')')
+              elm = elm.parentElement
+            }
+            return names.join('>')
+          } catch (e) {
+            console.log(e)
+            return 'Error'
+          }
+        }
+        const type = e.target.type
+        // for upload
+        if (type === 'file') {
+          const selector = getSelector(e.target)
+          console.log(selector)
+
+          window.sendMessage('upload', {
+            response_code: true,
+            message: 'Click file choose button',
+            data: {selector: selector},
+          })
+          e.preventDefault()
+          e.stopPropagation()
+        }
+        return
+      })
       window.addEventListener('click', (e) => {
         // get selector of element;
         const getSelector = (elm) => {
@@ -86,9 +122,9 @@ const pageEvent = async (page, socket, socketHelper) => {
   // Emitted when a frame within the page is navigated to a new URL
   page.on('framenavigated', async (frame) => {
     console.log('==========>frame navigated ', frame.url())
-    if (frame.url() === 'chrome-error://chromewebdata/') {
-      socketHelper.sendFailureMessage('Internet connection error')
-    }
+    // if (frame.url() === 'chrome-error://chromewebdata/') {
+    //   socketHelper.sendM('Internet connection error')
+    // }
     try {
       socketHelper.sendMessage('status', 'loaded')
 

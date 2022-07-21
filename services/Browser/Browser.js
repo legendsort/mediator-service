@@ -27,7 +27,7 @@ class Browser {
 
       this.browser = await puppeteer.launch(this.config.browser)
       this.page = await this.browser.newPage()
-      await this.page.setDefaultNavigationTimeout(60000)
+      await this.page.setDefaultNavigationTimeout(180000)
 
       this.browser.on('disconnected', (data) => {
         console.log('browser_disconnected')
@@ -355,6 +355,7 @@ class Browser {
       console.log('Stop - screenshot')
       try {
         clearInterval(this.screenShotInterval)
+        this.page.removeAllListeners('request')
       } catch (e) {
         console.log('Stop screenshot error')
         console.log(e)
