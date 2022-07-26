@@ -54,7 +54,7 @@ class Browser {
   }
 
   setHandlingPageEvent = async (page, socket, socketHelper) => {
-    return pageEvent(page, socket, socketHelper)
+    pageEvent(page, socket, socketHelper)
   }
 
   setSocket = async (socket) => {
@@ -65,8 +65,8 @@ class Browser {
     this.socket = socket
     this.socketHelper = new SocketHelper(socket)
 
-    this.page.removeAllListeners('request')
-    this.page = await this.setHandlingPageEvent(this.page, this.socket, this.socketHelper)
+    await this.page.removeAllListeners('')
+    await this.setHandlingPageEvent(this.page, this.socket, this.socketHelper)
     await this.setSocketLogic()
     return this.socket
   }
