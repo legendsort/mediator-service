@@ -12,7 +12,6 @@ class BrowserService {
       this.browser[id] = new Browser(id)
       console.log('====make new browser')
       await this.browser[id].launchBrowser()
-
       return this.browser[id]
     }
   }

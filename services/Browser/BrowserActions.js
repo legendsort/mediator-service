@@ -304,6 +304,7 @@ class BrowserActions {
   refresh = async () => {
     try {
       this.socketHelper.sendMessage('status', 'loading')
+      await this.stop()
       await this.page.reload({waitUntil: 'networkidle0'})
       this.socketHelper.sendMessage('status', 'loaded')
       return [true, 'Refresh succeed']
@@ -316,6 +317,7 @@ class BrowserActions {
   back = async () => {
     try {
       this.socketHelper.sendMessage('status', 'loading')
+      await this.stop()
       await this.page.goBack({waitUntil: 'networkidle0'})
       this.socketHelper.sendMessage('status', 'loaded')
 
@@ -329,6 +331,7 @@ class BrowserActions {
   forward = async () => {
     try {
       this.socketHelper.sendMessage('status', 'loading')
+      await this.stop()
       await this.page.goForward({waitUntil: 'networkidle0'})
       this.socketHelper.sendMessage('status', 'loaded')
 
@@ -345,6 +348,14 @@ class BrowserActions {
     } catch (e) {
       console.log(e)
       return false
+    }
+  }
+
+  stop = async () => {
+    try {
+      await this.page.removeAllListeners('request')
+    } catch (e) {
+      console.log(e)
     }
   }
   execute = async (scripts) => {
