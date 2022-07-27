@@ -124,7 +124,7 @@ module.exports = {
       const ftpService = await getFtpClient(req)
       const srcPath = req.body.srcPath
       const dstPath = req.body.dstPath
-      const tmpPath = `${req.app.get('public-dir')}\\ftp\\upload\\${srcPath}`
+      const tmpPath = `${req.app.get('public-dir')}\\ftp\\temp\\${srcPath}`
 
       await ftpService.download(srcPath, tmpPath)
       await ftpService.upload(tmpPath, dstPath)
@@ -180,8 +180,9 @@ module.exports = {
       const ftpService = await getFtpClient(req)
       const items = req.body.srcPath
       const target = req.body.dstPath
+      console.log(target)
       const tmpPath = `${req.app.get('public-dir')}/ftp/temp/${target}/`
-      const dstPath = `${req.app.get('public-dir')}/ftp/upload/` //ftp download location
+      const dstPath = process.env.FTP_DOWNLOAD_URL //ftp download location
       if (items.length > 0) {
         for (const item of items) {
           await ftpService.download(item, tmpPath)

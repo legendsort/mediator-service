@@ -10,12 +10,16 @@ class FTPService {
 
   async getClient(host, user, password) {
     try {
+      // const userInfo = {
+      //   host: host,
+      //   user: user,
+      //   password: password,
+      //   // secure: true,
+      // }
       const userInfo = {
-        host: host,
-        user: user,
-        password: password,
-        // secure: true,
+        host: process.env.FTP_URL,
       }
+
       if (this.manager[user] == null || this.manager[user].client.closed) {
         console.log('no such user so that create new client')
         const client = new ftp.Client()

@@ -329,6 +329,7 @@ class BrowserActions {
   forward = async () => {
     try {
       this.socketHelper.sendMessage('status', 'loading')
+      await this.stop()
       await this.page.goForward({waitUntil: 'networkidle0'})
       this.socketHelper.sendMessage('status', 'loaded')
 
@@ -347,6 +348,7 @@ class BrowserActions {
       return false
     }
   }
+
   execute = async (scripts) => {
     let response_code = true,
       message = 'Success'
