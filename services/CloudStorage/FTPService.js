@@ -16,6 +16,10 @@ class FTPService {
         password: password,
         // secure: true,
       }
+      // const userInfo = {
+      //   host: process.env.FTP_URL,
+      // }
+
       if (this.manager[user] == null || this.manager[user].client.closed) {
         console.log('no such user so that create new client')
         const client = new ftp.Client()
