@@ -3,7 +3,7 @@ const path = require('path')
 const URLPolicy = require('../Security/URLPolicy')
 const doFilter = false
 
-const pageEvent = async (page, socket, socketHelper) => {
+const pageEvent = async (page, socket, socketHelper, id) => {
   const urlPolicy = new URLPolicy(page, socket, {site: 'wipo', tag: 'AllowURL'})
   page.setRequestInterception(true)
   const handleRequest = async (request) => {
@@ -25,12 +25,51 @@ const pageEvent = async (page, socket, socketHelper) => {
     }
   }
 
+  setUpload = async () => {
+    await page.$$eval(
+      `input[type='file']`,
+      (data, socket) => {
+        data.map((el) => {
+          const getSelector = (elm) => {
+            try {
+              if (elm.tagName === 'BODY') return 'BODY'
+              const names = []
+
+              while (elm.parentElement && elm.tagName !== 'BODY') {
+                let c = 1,
+                  e = elm
+                for (; e.previousElementSibling; e = e.previousElementSibling, c++);
+                names.unshift(elm.tagName + ':nth-child(' + c + ')')
+                elm = elm.parentElement
+              }
+              return names.join('>')
+            } catch (e) {
+              console.log(e)
+              return 'Error'
+            }
+          }
+          el.onclick = (el) => {
+            console.log('----->--->', id)
+            const selector = getSelector(el.target)
+            console.log(selector)
+            socket.emit('upload', {
+              response_code: true,
+              message: 'Click file choose button',
+              data: {selector: selector},
+            })
+            el.preventDefault()
+            el.stopPropagation()
+          }
+        })
+      },
+      socket
+    )
+  }
+
   // Emitted when the DOM is parsed and ready (without waiting for resources)
   page.on('domcontentloaded', async () => {
     console.log('==========================================>loaded')
-    await page.evaluate(() => {
-      console.log('==================================================>', 'here')
-    })
+    await setUpload()
   })
 
   // Emitted when the page is fully loaded
@@ -156,10 +195,11 @@ const pageEvent = async (page, socket, socketHelper) => {
   }
 
   try {
-    await page.exposeFunction('validateURL', urlPolicy.validateURL)
-    await page.exposeFunction('sendMessage', socketHelper.sendMessage)
+    // await page.exposeFunction('validateURL', urlPolicy.validateURL)
+    await page.exposeFunction('sendMessage', (event, message) => {
+      socketHelper.sendMessage(event, message)
+    })
   } catch (e) {}
-  return page
 }
 
 module.exports = pageEvent
