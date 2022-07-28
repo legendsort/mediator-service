@@ -381,7 +381,7 @@ class Browser {
       console.log('Stop - screenshot')
       try {
         clearInterval(this.screenShotInterval)
-        this.page.removeAllListeners('request')
+        // this.page.removeAllListeners('request')
       } catch (e) {
         console.log('Stop screenshot error')
         console.log(e)
@@ -404,41 +404,5 @@ class Browser {
     } catch (error) {}
   }
   close() {}
-
-  async test() {
-    console.log('=======================  Page.test  ===================')
-    var lists =
-      '<select name="cars" id="cars">' +
-      '  <option value="volvo">Volvo</option>' +
-      '  <option value="saab">Saab</option>' +
-      '  <option value="mercedes">Mercedes</option>' +
-      '  <option value="audi">Audi</option>' +
-      '</select>'
-    try {
-      console.log(path.join(__dirname, 'ProxySelect.css'))
-      await this.page.addStyleTag({path: path.join(__dirname, 'ProxySelect.css')})
-      await this.page.addScriptTag({path: path.join(__dirname, 'ProxySelect.js')})
-
-      await this.page.evaluate((lists) => {
-        var wrapper = document.createElement('div')
-        wrapper.innerHTML = lists
-        var div = wrapper.firstChild
-        document.body.appendChild(div)
-        var selectNodes = document.getElementsByTagName('select')
-        console.log('------------------------>  select event listener')
-
-        for (var i = 0, len = selectNodes.length; i < len; i++) {
-          var selectNode = selectNodes[i]
-          console.log('====>', selectNode.hasAttribute('no-proxy-select'))
-          window.proxifySelect(selectNode)
-          console.log(selectNode)
-        }
-        console.log(selectNodes.length)
-        window.proxifyDynamicallyAddedSelects()
-      }, lists)
-    } catch (e) {
-      console.log(e)
-    }
-  }
 }
 module.exports = Browser
