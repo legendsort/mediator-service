@@ -28,7 +28,7 @@ class Browser {
       this.browser = await puppeteer.launch(this.config.browser)
       this.page = await this.browser.newPage()
       await this.page.setDefaultNavigationTimeout(180000)
-
+      await this.setFileUpload()
       this.browser.on('disconnected', (data) => {
         console.log('browser_disconnected')
       })
@@ -79,6 +79,25 @@ class Browser {
       return Object.keys(obj).length === 0
     } catch (error) {
       return false
+    }
+  }
+
+  setFileUpload = async () => {
+    const client = this.page._client
+    if (client == null) return false
+    try {
+      await client.send('Page.setInterceptFileChooserDialog', {enabled: true})
+
+      client.on('Page.fileChooserOpened', (data) => {
+        console.log('file chooser dialog opened', data)
+        this.socket.emit('upload', {
+          response_code: true,
+          message: 'Click file choose button',
+          data: {selector: 'as'},
+        })
+      })
+    } catch (e) {
+      console.log('____FILE_UPLOAD__ERROR____', e)
     }
   }
 
@@ -330,8 +349,15 @@ class Browser {
           return name
         })
         const files = await Promise.all(names)
-        const inputUploadHandle = await this.page.$(selector)
-        inputUploadHandle.uploadFile(...files)
+        // const inputUploadHandle = await this.page.$(selector)
+        // inputUploadHandle.uploadFile(...files)
+        const fileUploaders = await this.page.$$('input[type="file"]')
+        if (fileUploaders.length > 0) {
+          await fileUploaders[0].uploadFile(...files)
+          console.log('file uploaded  !!!!! : ' + files)
+        } else {
+          console.log('file uploader not found')
+        }
       } catch (e) {
         console.log(e)
         throw e
@@ -355,7 +381,7 @@ class Browser {
       console.log('Stop - screenshot')
       try {
         clearInterval(this.screenShotInterval)
-        this.page.removeAllListeners('request')
+        // this.page.removeAllListeners('request')
       } catch (e) {
         console.log('Stop screenshot error')
         console.log(e)
@@ -378,41 +404,5 @@ class Browser {
     } catch (error) {}
   }
   close() {}
-
-  async test() {
-    console.log('=======================  Page.test  ===================')
-    var lists =
-      '<select name="cars" id="cars">' +
-      '  <option value="volvo">Volvo</option>' +
-      '  <option value="saab">Saab</option>' +
-      '  <option value="mercedes">Mercedes</option>' +
-      '  <option value="audi">Audi</option>' +
-      '</select>'
-    try {
-      console.log(path.join(__dirname, 'ProxySelect.css'))
-      await this.page.addStyleTag({path: path.join(__dirname, 'ProxySelect.css')})
-      await this.page.addScriptTag({path: path.join(__dirname, 'ProxySelect.js')})
-
-      await this.page.evaluate((lists) => {
-        var wrapper = document.createElement('div')
-        wrapper.innerHTML = lists
-        var div = wrapper.firstChild
-        document.body.appendChild(div)
-        var selectNodes = document.getElementsByTagName('select')
-        console.log('------------------------>  select event listener')
-
-        for (var i = 0, len = selectNodes.length; i < len; i++) {
-          var selectNode = selectNodes[i]
-          console.log('====>', selectNode.hasAttribute('no-proxy-select'))
-          window.proxifySelect(selectNode)
-          console.log(selectNode)
-        }
-        console.log(selectNodes.length)
-        window.proxifyDynamicallyAddedSelects()
-      }, lists)
-    } catch (e) {
-      console.log(e)
-    }
-  }
 }
 module.exports = Browser

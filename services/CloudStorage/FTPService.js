@@ -18,6 +18,7 @@ class FTPService {
       // }
       const userInfo = {
         host: process.env.FTP_URL,
+        user: 'anonymous',
       }
 
       if (this.manager[user] == null || this.manager[user].client.closed) {
@@ -116,7 +117,7 @@ class FTPClient {
 
       const srcBaseName = path.basename(srcPath)
       const srcDirName = path.dirname(srcPath)
-
+      console.log(item, dir)
       const dstPath = dir + srcBaseName
       await this.cd(srcDirName)
       this.ensureDirectoryExistence(dstPath)
