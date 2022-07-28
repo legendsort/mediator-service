@@ -69,7 +69,7 @@ const pageEvent = async (page, socket, socketHelper, id) => {
   // Emitted when the DOM is parsed and ready (without waiting for resources)
   page.on('domcontentloaded', async () => {
     console.log('==========================================>loaded')
-    await setUpload()
+    // await setUpload()
   })
 
   // Emitted when the page is fully loaded

@@ -28,7 +28,7 @@ class Browser {
       this.browser = await puppeteer.launch(this.config.browser)
       this.page = await this.browser.newPage()
       await this.page.setDefaultNavigationTimeout(180000)
-
+      await this.setFileUpload()
       this.browser.on('disconnected', (data) => {
         console.log('browser_disconnected')
       })
@@ -79,6 +79,25 @@ class Browser {
       return Object.keys(obj).length === 0
     } catch (error) {
       return false
+    }
+  }
+
+  setFileUpload = async () => {
+    const client = this.page._client
+    if (client == null) return false
+    try {
+      await client.send('Page.setInterceptFileChooserDialog', {enabled: true})
+
+      client.on('Page.fileChooserOpened', (data) => {
+        console.log('file chooser dialog opened', data)
+        this.socket.emit('upload', {
+          response_code: true,
+          message: 'Click file choose button',
+          data: {selector: 'as'},
+        })
+      })
+    } catch (e) {
+      console.log('____FILE_UPLOAD__ERROR____', e)
     }
   }
 
@@ -330,8 +349,15 @@ class Browser {
           return name
         })
         const files = await Promise.all(names)
-        const inputUploadHandle = await this.page.$(selector)
-        inputUploadHandle.uploadFile(...files)
+        // const inputUploadHandle = await this.page.$(selector)
+        // inputUploadHandle.uploadFile(...files)
+        const fileUploaders = await this.page.$$('input[type="file"]')
+        if (fileUploaders.length > 0) {
+          await fileUploaders[0].uploadFile(...files)
+          console.log('file uploaded  !!!!! : ' + files)
+        } else {
+          console.log('file uploader not found')
+        }
       } catch (e) {
         console.log(e)
         throw e
