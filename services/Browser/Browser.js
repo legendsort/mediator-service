@@ -116,7 +116,6 @@ class Browser {
         let [result, message] = [true, 'Loaded!']
         if (this._isEmpty) {
           if (true || this.business != params) {
-            this.socketHelper.sendMessage('send-resize', {})
             const {type, action} = params
             console.log(type, action)
 
@@ -136,13 +135,13 @@ class Browser {
             const response = await this.BrowserActions.execute(this.scripts)
             result = response.response_code
             if (response.response_code === false) {
-              this.socketHelper.sendFailureMessage(response.message)
+              this.socketHelper.sendFailureMessage('Internet connection error')
             }
 
             // await installMouseHelper(this.page)
           }
         }
-
+        console.log({result})
         if (result) {
           console.log(viewport.width, viewport.height)
           await this.BrowserActions.setViewport(viewport.width, viewport.height)

@@ -144,7 +144,7 @@ const pageEvent = async (page, socket, socketHelper, id) => {
 
   // Emitted when a request, which is produced by the page, fails
   page.on('requestfailed', (request) => {
-    console.log('====> request failed')
+    console.log('====> request failed', request.resourceType())
   })
 
   // Emitted when a request, which is produced by the page, finishes successfully
@@ -193,13 +193,6 @@ const pageEvent = async (page, socket, socketHelper, id) => {
       console.log(e)
     }
   }
-
-  try {
-    // await page.exposeFunction('validateURL', urlPolicy.validateURL)
-    await page.exposeFunction('sendMessage', (event, message) => {
-      socketHelper.sendMessage(event, message)
-    })
-  } catch (e) {}
 }
 
 module.exports = pageEvent
