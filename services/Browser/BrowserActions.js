@@ -298,15 +298,13 @@ class BrowserActions {
     }
   }
 
-  pasteFromMain = async (data) => {
+  pasteFromMain = async (text) => {
     try {
       const page = this.page
-      console.log('====', data)
-      await page.evaluate((clipText = data.text) => {
-        console.log('ppp', clipText)
-        document.execCommand('insertText', false, clipText)
-      }, clipText)
-      return [true, 'Paste succeed', clipText]
+      await page.evaluate((text) => {
+        document.execCommand('insertText', false, text)
+      }, text)
+      return [true, 'Paste succeed', text]
     } catch (e) {
       console.log(e)
       return [false, 'Paste error']
