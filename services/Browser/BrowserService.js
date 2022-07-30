@@ -3,6 +3,7 @@ const Browser = require('./Browser')
 class BrowserService {
   constructor() {
     this.browser = {}
+    this.desTime = 1000 * 60 * 60 * 24 //1 day
   }
 
   makeBrowser = async (id) => {
@@ -12,6 +13,9 @@ class BrowserService {
       this.browser[id] = new Browser(id)
       console.log('====make new browser')
       await this.browser[id].launchBrowser()
+      setTimeout(() => {
+        this.removeBrowser(id)
+      }, this.desTime)
       return this.browser[id]
     }
   }
