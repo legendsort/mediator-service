@@ -182,13 +182,51 @@ class BrowserActions {
     }
   }
 
-  async deleteWord() {
+  deleteWord = async () => {
     if (!this._isEmpty(this.page)) {
       await this.page.keyboard.down('Control')
       await this.page.keyboard.press('Backspace')
       await this.page.keyboard.up('Control')
     } else {
       console.log('deleteword   failed !')
+    }
+  }
+
+  deleteBackWord = async () => {
+    if (!this._isEmpty(this.page)) {
+      await this.page.keyboard.down('Control')
+      await this.page.keyboard.press('Delete')
+      await this.page.keyboard.up('Control')
+    } else {
+      console.log('deleteword   failed !')
+    }
+  }
+
+  selectWord = async (key) => {
+    try {
+      console.log(key)
+      if (!this._isEmpty(this.page)) {
+        await this.page.keyboard.down('Shift')
+        switch (key) {
+          case 35:
+            await this.page.keyboard.press('End')
+            break
+          case 36:
+            await this.page.keyboard.press('Home')
+            break
+          case 37:
+            await this.page.keyboard.press('ArrowLeft')
+            break
+          case 39:
+            await this.page.keyboard.press('ArrowRight')
+            break
+        }
+        await this.page.keyboard.up('Shift')
+      } else {
+        console.log('select word failed !')
+      }
+    } catch (e) {
+      console.log(e)
     }
   }
 
