@@ -204,14 +204,14 @@ class Browser {
           this.BrowserActions.selectAll()
           break
         case 'copy':
-          this.BrowserActions.copy({})
+          this.BrowserActions.copyToMain(data)
           break
         case 'cut':
           this.BrowserActions.cut({})
           break
 
         case 'paste':
-          this.BrowserActions.paste({})
+          this.BrowserActions.pasteFromMain(data.clipText)
           break
         case 'deleteword':
           this.BrowserActions.deleteWord({})
@@ -236,18 +236,7 @@ class Browser {
 
     this.socket.on('copy', async (data) => {
       try {
-        const res = await this.BrowserActions.copy(data)
-
-        await this.socketHelper.sendMessage('message', {
-          response_code: res[0],
-          message: res[1],
-        })
-        if (res[0])
-          await this.socketHelper.sendMessage('copy', {
-            response_code: true,
-            message: 'success',
-            data: res[2],
-          })
+        await this.BrowserActions.copy(data)
         await this.sendScreenshot()
       } catch (error) {
         console.log(error)
@@ -256,12 +245,7 @@ class Browser {
 
     this.socket.on('paste', async (data) => {
       try {
-        const res = await this.BrowserActions.paste(data)
-        await this.socketHelper.sendMessage('message', {
-          response_code: res[0],
-          message: res[1],
-        })
-
+        await this.BrowserActions.paste(data)
         await this.sendScreenshot()
       } catch (error) {
         console.log(error)

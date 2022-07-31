@@ -260,47 +260,56 @@ class BrowserActions {
   }
 
   copy = async (action) => {
+    if (!this._isEmpty(this.page)) {
+      await this.page.keyboard.down('Control')
+      await this.page.keyboard.press('KeyC')
+      await this.page.keyboard.up('Control')
+    } else {
+      console.log('copy   failed !')
+    }
+  }
+
+  paste = async (data) => {
+    if (!this._isEmpty(this.page)) {
+      await this.page.keyboard.down('Control')
+      await this.page.keyboard.press('KeyV')
+      await this.page.keyboard.up('Control')
+    } else {
+      console.log('paste failed !')
+    }
+  }
+  copyToMain = async (action) => {
     try {
       const page = this.page
-
-      const context = await this.browser.defaultBrowserContext()
-      await context.overridePermissions(this.getUrl(), ['clipboard-read', 'clipboard-write'])
-
-      await page.bringToFront()
-      const clipText = await page.evaluate(() => {
-        document.execCommand('copy')
-        return navigator.clipboard.readText()
+      const text = await page.evaluate(() => {
+        if (window.getSelection) {
+          return window.getSelection().toString()
+        } else if (document.selection && document.selection.type != 'Control') {
+          return document.selection.createRange().text
+        }
+        return text
       })
+      this.socketHelper.sendMessage('copy', text)
 
-      console.log({clipText})
-      await context.clearPermissionOverrides()
-      return [true, 'Copy succeed', clipText]
+      return [true, 'Copy succeed', text]
     } catch (e) {
       console.log(e)
       return [false, 'Copy error']
     }
   }
 
-  paste = async (data) => {
+  pasteFromMain = async (text) => {
     try {
       const page = this.page
-      const context = await this.browser.defaultBrowserContext()
-      await context.overridePermissions(this.getUrl(), ['clipboard-read'])
-
-      await page.bringToFront()
-      const clipText = await page.evaluate(() => {
-        return navigator.clipboard.readText()
-      })
-      await page.evaluate((clipText) => {
-        document.execCommand('insertText', false, clipText)
-      }, clipText)
-      return [true, 'Paste succeed', clipText]
+      await page.evaluate((text) => {
+        document.execCommand('insertText', false, text)
+      }, text)
+      return [true, 'Paste succeed', text]
     } catch (e) {
       console.log(e)
       return [false, 'Paste error']
     }
   }
-
   refresh = async () => {
     try {
       this.socketHelper.sendMessage('status', 'loading')
