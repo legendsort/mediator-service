@@ -6,23 +6,25 @@ class URLPolicy {
   constructor(page, socket, info) {
     this.page = page
     this.socketHelper = new SocketHelper(socket)
-    this.allowUrlList = []
+    this.allowList = []
     this.denyList = []
-
-    getConfig(info).then((res) => {
-      this.allowUrlList = res
-    })
+    getConfig(info)
+      .then((res) => {
+        this.allowUrlList = res
+      })
+      .catch((e) => console.log(e))
   }
 
   validateURL = (url) => {
     let res = false
 
-    this.allowUrlList.forEach((aurl) => {
+    this.allowList.forEach((aurl) => {
       if (url.indexOf(aurl) === 0) res = true
     })
     this.denyList.forEach((durl) => {
       if (url.indexOf(durl) === 0) res = false
     })
+    
     return res
   }
 
@@ -34,7 +36,19 @@ class URLPolicy {
 
     await page.$$eval(
       'a',
-      (data, url) =>
+      (data, url, allow, deny) => {
+        validateURL = (url) => {
+          let res = false
+
+          allow.forEach((aurl) => {
+            if (url.indexOf(aurl) === 0) res = true
+          })
+          deny.forEach((durl) => {
+            if (url.indexOf(durl) === 0) res = false
+          })
+          return res
+        }
+
         data.map((el) => {
           if (el.target === '') {
           } else if (el.target === '_self') {
@@ -46,7 +60,7 @@ class URLPolicy {
           } else if (el.href.indexOf('javascript:') === 0) {
           } else {
             const href = el.href
-            this.validateURL(href).then((res) => {
+            validateURL(href).then((res) => {
               if (res === false) {
                 if (el.href != '') {
                   el.href = ''
@@ -58,8 +72,11 @@ class URLPolicy {
             })
           }
           return el
-        }),
-      url
+        })
+      },
+      url,
+      this.allowList,
+      this.denyList
     )
   }
 

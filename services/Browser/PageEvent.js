@@ -4,12 +4,18 @@ const URLPolicy = require('../Security/URLPolicy')
 const doFilter = false
 
 const pageEvent = async (page, socket, socketHelper, id) => {
-  const urlPolicy = new URLPolicy(page, socket, {site: 'wipo', tag: 'AllowURL'})
+  const urlPolicy = new URLPolicy(page, socket, {site: 'Contest', tag: 'AllowURL'})
   page.setRequestInterception(true)
   const handleRequest = async (request) => {
     const url = request.url()
     const type = request.resourceType()
-    // console.log('-------------------------------> New request: ', type, urlPolicy.validateURL(url))
+    if (type === 'document')
+      console.log(
+        '-------------------------------> New request: ',
+        type,
+        url,
+        urlPolicy.validateURL(url)
+      )
     if (doFilter === false) {
       request.continue()
       return
@@ -18,9 +24,10 @@ const pageEvent = async (page, socket, socketHelper, id) => {
       request.continue()
     } else {
       if (type === 'document') {
-        socketHelper.sendFailureMessage('Not valid URL!!!')
+        socketHelper.sendWarnMessage('Not allowed link!!!')
         await page.goBack({waitUntil: 'networkidle0'})
-      } else console.log('aborted')
+      }
+      console.log('aborted')
       request.abort()
     }
   }
