@@ -23,6 +23,7 @@ class SocketHelper {
     this.sendMessage('message', {
       response_code: true,
       message: message,
+      type: 'success',
     })
   }
 
@@ -30,6 +31,15 @@ class SocketHelper {
     this.sendMessage('message', {
       response_code: false,
       message: message,
+      type: 'error',
+    })
+  }
+
+  sendWarnMessage = (message) => {
+    this.sendMessage('message', {
+      response_code: false,
+      message: message,
+      type: 'warning',
     })
   }
 }
