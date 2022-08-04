@@ -92,7 +92,7 @@ class Browser {
         this.socket.emit('upload', {
           response_code: true,
           message: 'Click file choose button',
-          data: {selector: 'as'},
+          data: {selector: data.backendNodeId},
         })
       })
     } catch (e) {
@@ -342,6 +342,8 @@ class Browser {
         // const inputUploadHandle = await this.page.$(selector)
         // inputUploadHandle.uploadFile(...files)
         const fileUploaders = await this.page.$$('input[type="file"]')
+        const uploaderNode = window.resolveNode(selector)
+        console.log(uploaderNode)
         if (fileUploaders.length > 0) {
           await fileUploaders[0].uploadFile(...files)
           console.log('file uploaded  !!!!! : ' + files)

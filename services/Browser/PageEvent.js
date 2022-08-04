@@ -1,7 +1,7 @@
 /** @format */
 const path = require('path')
 const URLPolicy = require('../Security/URLPolicy')
-const doFilter = true
+const doFilter = false
 
 const pageEvent = async (page, socket, socketHelper, type) => {
   console.log('=======================', type)
@@ -11,65 +11,24 @@ const pageEvent = async (page, socket, socketHelper, type) => {
     const url = request.url()
     const type = request.resourceType()
     if (doFilter === false) {
-      request.continue()
+      await request.continue()
       return
     }
-    if (type !== 'document' || urlPolicy.validateURL(url) === true) {
+    if (type !== 'document') {
       request.continue()
     } else {
-      if (type === 'document') {
+      if (type === 'document' && urlPolicy.validateURL(url) === false) {
+        await request.abort()
         socketHelper.sendWarnMessage('Not allowed link!!!')
         await page.reload({waitUntil: 'networkidle0'})
-      }
-      await request.abort()
-      console.log('aborted')
+        console.log('aborted')
+      } else await request.continue()
     }
-  }
-
-  setUpload = async () => {
-    await page.$$eval(
-      `input[type='file']`,
-      (data, socket) => {
-        data.map((el) => {
-          const getSelector = (elm) => {
-            try {
-              if (elm.tagName === 'BODY') return 'BODY'
-              const names = []
-
-              while (elm.parentElement && elm.tagName !== 'BODY') {
-                let c = 1,
-                  e = elm
-                for (; e.previousElementSibling; e = e.previousElementSibling, c++);
-                names.unshift(elm.tagName + ':nth-child(' + c + ')')
-                elm = elm.parentElement
-              }
-              return names.join('>')
-            } catch (e) {
-              console.log(e)
-              return 'Error'
-            }
-          }
-          el.onclick = (el) => {
-            const selector = getSelector(el.target)
-            console.log(selector)
-            socket.emit('upload', {
-              response_code: true,
-              message: 'Click file choose button',
-              data: {selector: selector},
-            })
-            el.preventDefault()
-            el.stopPropagation()
-          }
-        })
-      },
-      socket
-    )
   }
 
   // Emitted when the DOM is parsed and ready (without waiting for resources)
   page.on('domcontentloaded', async () => {
     console.log('==========================================>loaded')
-    // await setUpload()
   })
 
   // Emitted when the page is fully loaded

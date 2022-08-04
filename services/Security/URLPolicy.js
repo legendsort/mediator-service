@@ -87,7 +87,7 @@ class URLPolicy {
       console.log('-----------------filterAll end---------------------')
       return
     } catch (e) {
-      this.socketHelper.sendFailureMessage('Filter failed')
+      this.socketHelper.sendWarnMessage('Filter failed')
       console.log(e)
     }
   }
