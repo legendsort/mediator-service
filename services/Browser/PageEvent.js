@@ -3,8 +3,9 @@ const path = require('path')
 const URLPolicy = require('../Security/URLPolicy')
 const doFilter = true
 
-const pageEvent = async (page, socket, socketHelper, id) => {
-  const urlPolicy = new URLPolicy(page, socket, {site: 'Contest', tag: 'AllowURL'})
+const pageEvent = async (page, socket, socketHelper, type) => {
+  console.log('=======================', type)
+  const urlPolicy = new URLPolicy(page, socket, {site: type, tag: 'AllowURL'})
   page.setRequestInterception(true)
   const handleRequest = async (request) => {
     const url = request.url()
@@ -16,11 +17,11 @@ const pageEvent = async (page, socket, socketHelper, id) => {
     if (type !== 'document' || urlPolicy.validateURL(url) === true) {
       request.continue()
     } else {
-      // await request.abort()
       if (type === 'document') {
         socketHelper.sendWarnMessage('Not allowed link!!!')
-        // await page.goBack({waitUntil: 'networkidle0'})
+        await page.reload({waitUntil: 'networkidle0'})
       }
+      await request.abort()
       console.log('aborted')
     }
   }
@@ -49,7 +50,6 @@ const pageEvent = async (page, socket, socketHelper, id) => {
             }
           }
           el.onclick = (el) => {
-            console.log('----->--->', id)
             const selector = getSelector(el.target)
             console.log(selector)
             socket.emit('upload', {
