@@ -10,21 +10,20 @@ class URLPolicy {
     this.denyList = []
     getConfig(info)
       .then((res) => {
-        this.allowUrlList = res
+        this.allowList = res
       })
       .catch((e) => console.log(e))
   }
 
   validateURL = (url) => {
     let res = false
-
     this.allowList.forEach((aurl) => {
       if (url.indexOf(aurl) === 0) res = true
     })
     this.denyList.forEach((durl) => {
       if (url.indexOf(durl) === 0) res = false
     })
-    
+
     return res
   }
 
@@ -60,16 +59,15 @@ class URLPolicy {
           } else if (el.href.indexOf('javascript:') === 0) {
           } else {
             const href = el.href
-            validateURL(href).then((res) => {
-              if (res === false) {
-                if (el.href != '') {
-                  el.href = ''
-                }
-                if (el.onclick != null) {
-                  el.onclick = null
-                }
+            const res = validateURL(href)
+            if (res === false) {
+              if (el.href != '') {
+                el.href = ''
               }
-            })
+              if (el.onclick != null) {
+                el.onclick = null
+              }
+            }
           }
           return el
         })

@@ -1,7 +1,7 @@
 /** @format */
 const path = require('path')
 const URLPolicy = require('../Security/URLPolicy')
-const doFilter = false
+const doFilter = true
 
 const pageEvent = async (page, socket, socketHelper, id) => {
   const urlPolicy = new URLPolicy(page, socket, {site: 'Contest', tag: 'AllowURL'})
@@ -9,26 +9,19 @@ const pageEvent = async (page, socket, socketHelper, id) => {
   const handleRequest = async (request) => {
     const url = request.url()
     const type = request.resourceType()
-    if (type === 'document')
-      console.log(
-        '-------------------------------> New request: ',
-        type,
-        url,
-        urlPolicy.validateURL(url)
-      )
     if (doFilter === false) {
       request.continue()
       return
     }
-    if (type !== 'document' || urlPolicy.validateURL(url) == true) {
+    if (type !== 'document' || urlPolicy.validateURL(url) === true) {
       request.continue()
     } else {
+      // await request.abort()
       if (type === 'document') {
         socketHelper.sendWarnMessage('Not allowed link!!!')
-        await page.goBack({waitUntil: 'networkidle0'})
+        // await page.goBack({waitUntil: 'networkidle0'})
       }
       console.log('aborted')
-      request.abort()
     }
   }
 
