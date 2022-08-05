@@ -53,8 +53,8 @@ class Browser {
     }
   }
 
-  setHandlingPageEvent = async (page, socket, socketHelper) => {
-    pageEvent(page, socket, socketHelper)
+  setHandlingPageEvent = async (page, socket, socketHelper, type) => {
+    pageEvent(page, socket, socketHelper, type)
   }
 
   setSocket = async (socket) => {
@@ -66,7 +66,6 @@ class Browser {
     this.socketHelper = new SocketHelper(socket)
 
     await this.page.removeAllListeners('')
-    await this.setHandlingPageEvent(this.page, this.socket, this.socketHelper)
     await this.setSocketLogic()
     return this.socket
   }
@@ -93,7 +92,7 @@ class Browser {
         this.socket.emit('upload', {
           response_code: true,
           message: 'Click file choose button',
-          data: {selector: 'as'},
+          data: {selector: data.backendNodeId},
         })
       })
     } catch (e) {
@@ -106,6 +105,7 @@ class Browser {
       try {
         const {params, viewport} = data
         this.type = params.type
+        await this.setHandlingPageEvent(this.page, this.socket, this.socketHelper, this.type)
         this.BrowserActions = new BrowserActions(
           this.page,
           this.socket,
@@ -342,6 +342,8 @@ class Browser {
         // const inputUploadHandle = await this.page.$(selector)
         // inputUploadHandle.uploadFile(...files)
         const fileUploaders = await this.page.$$('input[type="file"]')
+        const uploaderNode = window.resolveNode(selector)
+        console.log(uploaderNode)
         if (fileUploaders.length > 0) {
           await fileUploaders[0].uploadFile(...files)
           console.log('file uploaded  !!!!! : ' + files)
