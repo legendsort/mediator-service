@@ -339,16 +339,27 @@ class Browser {
           return name
         })
         const files = await Promise.all(names)
-        // const inputUploadHandle = await this.page.$(selector)
-        // inputUploadHandle.uploadFile(...files)
         const fileUploaders = await this.page.$$('input[type="file"]')
-        const uploaderNode = window.resolveNode(selector)
-        console.log(uploaderNode)
-        if (fileUploaders.length > 0) {
-          await fileUploaders[0].uploadFile(...files)
-          console.log('file uploaded  !!!!! : ' + files)
-        } else {
-          console.log('file uploader not found')
+        const node = await this.page._client.send('DOM.resolveNode', {
+          backendNodeId: selector,
+          selector: '*',
+        })
+
+        for (const uploader of fileUploaders) {
+          console.log(uploader._remoteObject, node.object)
+        }
+        for (const uploader of fileUploaders) {
+          const oid = uploader._remoteObject.description
+          console.log(oid, node.object.description)
+          if (oid === node.object.description) {
+            if (fileUploaders.length > 0) {
+              await uploader.uploadFile(...files)
+              console.log('file uploaded  !!!!! : ' + files)
+            } else {
+              console.log('file uploader not found')
+            }
+            break
+          }
         }
       } catch (e) {
         console.log(e)
