@@ -26,7 +26,7 @@ class BrowserActions {
       } catch (error) {
         let str_error = error.toString()
         if (str_error.includes('TimeoutError')) {
-          ans = [false, 'TimeoutError']
+          ans = [false, 'GLOBAL.TIMEOUT']
         } else if (str_error.includes('ERR_NAME_NOT_RESOLVED')) {
           ans = [false, 'ERR_NAME_NOT_RESOLVED']
         } else if (str_error.includes('ERR_INTERNET_DISCONNECTED')) {
@@ -34,7 +34,7 @@ class BrowserActions {
         } else if (str_error.includes('ERR_CONNECTION_REFUSED')) {
           ans = [false, 'ERR_CONNECTION_REFUSED']
         } else if (str_error.includes('ERR_CONNECTION_TIMED_OUT')) {
-          ans = [false, 'ERR_CONNECTION_TIMED_OUT']
+          ans = [false, 'GLOBAL.TIMEOUT']
         } else {
           ans = [false, error]
         }
