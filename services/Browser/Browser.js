@@ -135,7 +135,7 @@ class Browser {
             const response = await this.BrowserActions.execute(this.scripts)
             result = response.response_code
             if (response.response_code === false) {
-              this.socketHelper.sendFailureMessage('Internet connection error')
+              this.socketHelper.sendFailureMessage('GLOBAL.CONERR.INTERNET')
             }
 
             // await installMouseHelper(this.page)
@@ -154,7 +154,7 @@ class Browser {
         }
       } catch (e) {
         console.log(e)
-        this.socketHelper.sendFailureMessage('Network Error!')
+        this.socketHelper.sendFailureMessage('GLOBAL.CONERR.INTERNET')
       }
     })
 
@@ -262,10 +262,11 @@ class Browser {
     this.socket.on('refresh', async () => {
       try {
         const res = await this.BrowserActions.refresh()
-        await this.socketHelper.sendMessage('message', {
-          response_code: res[0],
-          message: res[1],
-        })
+        if (!res[0])
+          await this.socketHelper.sendMessage('message', {
+            response_code: res[0],
+            message: res[1],
+          })
 
         await this.sendScreenshot()
       } catch (error) {
@@ -276,10 +277,11 @@ class Browser {
     this.socket.on('back', async () => {
       try {
         const res = await this.BrowserActions.back()
-        await this.socketHelper.sendMessage('message', {
-          response_code: res[0],
-          message: res[1],
-        })
+        if (!res[0])
+          await this.socketHelper.sendMessage('message', {
+            response_code: res[0],
+            message: res[1],
+          })
 
         await this.sendScreenshot()
       } catch (error) {
@@ -290,10 +292,11 @@ class Browser {
     this.socket.on('forward', async () => {
       try {
         const res = await this.BrowserActions.forward()
-        await this.socketHelper.sendMessage('message', {
-          response_code: res[0],
-          message: res[1],
-        })
+        if (!res[0])
+          await this.socketHelper.sendMessage('message', {
+            response_code: res[0],
+            message: res[1],
+          })
 
         await this.sendScreenshot()
       } catch (error) {
@@ -324,10 +327,10 @@ class Browser {
           const filepath = path.join(dir, name)
           await fs.writeFileSync(filepath, file, 'binary')
         }
-        this.socketHelper.sendSuccessMessage('Upload files succeed')
+        this.socketHelper.sendSuccessMessage('GLOBAL.UPLOAD.SUCCEED')
       } catch (e) {
         console.log(e)
-        this.socketHelper.sendFailureMessage('Upload files failed')
+        this.socketHelper.sendFailureMessage('GLOBAL.UPLOAD.FAILED')
       }
     }
 

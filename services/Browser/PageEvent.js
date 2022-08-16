@@ -19,7 +19,7 @@ const pageEvent = async (page, socket, socketHelper, type) => {
     } else {
       if (type === 'document' && urlPolicy.validateURL(url) === false) {
         await request.abort()
-        socketHelper.sendWarnMessage('Not allowed link!!!')
+        socketHelper.sendWarnMessage('GLOBAL.NOT.ALLOWED.LINK')
         await page.reload({waitUntil: 'networkidle0'})
         console.log('aborted')
       } else await request.continue()
